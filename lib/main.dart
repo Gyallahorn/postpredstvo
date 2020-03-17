@@ -5,8 +5,38 @@ import 'package:geolocator/geolocator.dart';
 import 'package:google_map_polyline/google_map_polyline.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:permission/permission.dart';
+import 'package:pospredsvto/main/home_bottom_nav_bar.dart';
+import 'package:pospredsvto/main/tab_navigation.dart';
 
-void main() => runApp(MyApp());
+void main() => runApp(MainFrame());
+
+class MainFrame extends StatefulWidget {
+  @override
+  _MainFrameState createState() => _MainFrameState();
+}
+
+class _MainFrameState extends State<MainFrame> {
+  int _currentIndex = 0;
+  @override
+  Widget build(BuildContext context) {
+    void onTabTapped(int index) {
+      setState(() {
+        _currentIndex = index;
+      });
+    }
+
+    return MaterialApp(
+      home: Scaffold(
+        appBar: AppBar(),
+        body: NavigationTab().widgetList[_currentIndex],
+        bottomNavigationBar: HomeBottomNavBar(
+          onTabTapped: onTabTapped,
+          currentIndex: _currentIndex,
+        ),
+      ),
+    );
+  }
+}
 
 class MyApp extends StatefulWidget {
   @override
@@ -79,50 +109,32 @@ class _MyAppState extends State<MyApp> {
           target: LatLng(pos.latitude, pos.longitude), zoom: 15.0)));
     }
 
-    return MaterialApp(
-        home: Scaffold(
-            floatingActionButton: FloatingActionButton(
-              onPressed: () => {
-                setState(() {
-                  print(position.latitude);
-                })
-              },
-            ),
-            appBar: AppBar(
-              title: GestureDetector(child: Text('Maps With Marker')),
-              backgroundColor: Colors.blue[100],
-            ),
-            body: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                Expanded(
-                  child: GoogleMap(
-                    polylines: polyline,
-                    zoomGesturesEnabled: true,
-                    initialCameraPosition: CameraPosition(
-                      target: LatLng(position.latitude, position.longitude),
-                      zoom: zoom,
-                    ),
-                    markers: this.myMarker(),
-                    mapType: MapType.normal,
-                    onMapCreated: (GoogleMapController controller) {
-                      setState(() {
-                        _controller.complete(controller);
+    return Material(
+      child: GoogleMap(
+        polylines: polyline,
+        zoomGesturesEnabled: true,
+        initialCameraPosition: CameraPosition(
+          target: LatLng(position.latitude, position.longitude),
+          zoom: zoom,
+        ),
+        markers: this.myMarker(),
+        mapType: MapType.normal,
+        onMapCreated: (GoogleMapController controller) {
+          setState(() {
+            _controller.complete(controller);
 
-                        polyline.add(Polyline(
-                            polylineId: PolylineId('route1R'),
-                            visible: true,
-                            points: routeCoords,
-                            width: 4,
-                            color: Colors.blue,
-                            startCap: Cap.roundCap,
-                            endCap: Cap.buttCap));
-                      });
-                    },
-                  ),
-                ),
-              ],
-            )));
+            polyline.add(Polyline(
+                polylineId: PolylineId('route1R'),
+                visible: true,
+                points: routeCoords,
+                width: 4,
+                color: Colors.blue,
+                startCap: Cap.roundCap,
+                endCap: Cap.buttCap));
+          });
+        },
+      ),
+    );
   }
 
   Set<Marker> myMarker() {
