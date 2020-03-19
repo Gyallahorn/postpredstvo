@@ -11,22 +11,16 @@ class MapFrame extends StatefulWidget {
   _MapFrameState createState() => _MapFrameState();
 }
 
-List<Map<String, dynamic>> markers = [
-  {"latitude": "62.034125", "longitude": "129.713635"},
-  {"latitude": "62.034225", "longitude": "129.713635"},
-  {"latitude": "62.034325", "longitude": "129.713635"},
-  {"latitude": "62.034425", "longitude": "129.713635"},
-];
+List<Map<String, dynamic>> markers = [];
 void getGeo() async {
   Position position = await Geolocator()
       .getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
 }
 
 class _MapFrameState extends State<MapFrame> {
-  //Markers
-  // BitmapDescriptor pinLocationIcon;
-  // Set<Marker> _markerss={};
-  // Completer<GoogleMapController> =_controller = Completer();
+  int i = 0;
+  List<Marker> allMarkers = [];
+
   Completer<GoogleMapController> _controller = Completer();
   // Routing vars
   final Set<Polyline> polyline = {};
@@ -54,14 +48,29 @@ class _MapFrameState extends State<MapFrame> {
   static const LatLng _mainLocation = const LatLng(25.69893, 32.6421);
   static Position position;
   Widget _child;
-  double zoom = 10;
-
+  double zoom = 12;
+  List<Map<String, dynamic>> huy = [
+    {"lng": 62.03484},
+    {"lng": 62.03480},
+    {"lng": 62.03452},
+    {"lng": 62.03485},
+    {"lng": 62.03478}
+  ];
   @override
   void initState() {
     getCurrentLocation();
     getSomePoints();
 
     super.initState();
+    for (int i = 0; i < 5; i++) {
+      print(huy[i]["lng"]);
+      allMarkers.add(Marker(
+        markerId: MarkerId(i.toString()),
+        draggable: false,
+        position: LatLng(huy[i]["lng"], 129.7420426),
+        onTap: () => {print("hello Marker tapped")},
+      ));
+    }
   }
 
   void getCurrentLocation() async {
@@ -88,7 +97,7 @@ class _MapFrameState extends State<MapFrame> {
           target: LatLng(position.latitude, position.longitude),
           zoom: zoom,
         ),
-        markers: this.myMarker(),
+        markers: Set<Marker>.of(allMarkers),
         mapType: MapType.normal,
         onMapCreated: (GoogleMapController controller) {
           setState(() {
@@ -123,5 +132,11 @@ class _MapFrameState extends State<MapFrame> {
     });
 
     return _markers;
+  }
+
+  void mapCreated(controller) {
+    setState(() {
+      _controller = controller;
+    });
   }
 }
