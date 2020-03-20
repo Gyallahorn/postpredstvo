@@ -8,12 +8,15 @@ class Answers extends StatelessWidget {
         itemBuilder: (context, index) {
           return Column(
             children: <Widget>[
+              SizedBox(
+                height: 20,
+              ),
               GestureDetector(
                 onTap: () {
                   print("pressed");
                 },
                 child: Container(
-                  color: Colors.grey,
+                  color: Colors.grey[300],
                   height: 50,
                   width: 300,
                   child: Text("sd"),

@@ -23,6 +23,7 @@ dependencies:
   geolocator: ^5.1.4+2
   fluster: ^1.1.2
   google_map_polyline: ^0.2.0+1
+  shared_preferences: ^0.4.3
   permission:
 
   
