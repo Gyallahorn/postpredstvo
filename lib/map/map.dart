@@ -20,7 +20,7 @@ void getGeo() async {
 class _MapFrameState extends State<MapFrame> {
   int i = 0;
   List<Marker> allMarkers = [];
-
+  List<Marker> _markers = [];
   Completer<GoogleMapController> _controller = Completer();
   // Routing vars
   final Set<Polyline> polyline = {};
@@ -28,7 +28,7 @@ class _MapFrameState extends State<MapFrame> {
   GoogleMapPolyline googleMapPolyline =
       new GoogleMapPolyline(apiKey: "AIzaSyD1jTuV-6U9jr8R9K91sgibrZ4ETpT09UQ");
 
-  getSomePoints() async {
+  getSomePoints(double lng, double ltd) async {
     var permissions =
         await Permission.getPermissionsStatus([PermissionName.Location]);
     if (permissions[0].permissionStatus == PermissionStatus.notAgain) {
@@ -36,41 +36,57 @@ class _MapFrameState extends State<MapFrame> {
           await Permission.requestPermissions([PermissionName.Location]);
     } else {
       routeCoords = await googleMapPolyline.getCoordinatesWithLocation(
-          origin: LatLng(62.034135, 129.723635),
-          destination: LatLng(62.034125, 129.713635),
+          origin: LatLng(position.latitude, position.longitude),
+          destination: LatLng(lng, ltd),
           mode: RouteMode.walking);
     }
   }
 
+  void setMapPins(double lat, double lng) {
+    setState(() {
+      _markers.add(Marker(
+          markerId: MarkerId("dest"),
+          position: LatLng(position.latitude, position.longitude)));
+      _markers
+          .add(Marker(markerId: MarkerId("dest"), position: LatLng(lat, lng)));
+    });
+  }
+
+  setPolilines() async {}
+
   //Map
   GoogleMapController myMapController;
-  final Set<Marker> _markers = new Set();
+  // final Set<Marker> _markers = new Set();
   static const LatLng _mainLocation = const LatLng(25.69893, 32.6421);
   static Position position;
   Widget _child;
   double zoom = 12;
   List<Map<String, dynamic>> huy = [
-    {"lng": 62.03484},
-    {"lng": 62.03480},
-    {"lng": 62.03452},
-    {"lng": 62.03485},
-    {"lng": 62.03478}
+    {"lng": 62.03484, "ltd": 129.7420426},
+    {"lng": 62.03480, "ltd": 129.7420416},
+    {"lng": 62.03452, "ltd": 129.7420476},
+    {"lng": 62.03485, "ltd": 129.7420466},
+    {"lng": 62.03478, "ltd": 129.7420444}
   ];
   @override
   void initState() {
     getCurrentLocation();
-    getSomePoints();
 
-    super.initState();
     for (int i = 0; i < 5; i++) {
-      print(huy[i]["lng"]);
       allMarkers.add(Marker(
         markerId: MarkerId(i.toString()),
         draggable: false,
-        position: LatLng(huy[i]["lng"], 129.7420426),
-        onTap: () => {print("hello Marker tapped")},
+        position: LatLng(huy[i]["lng"], huy[i]["ltd"]),
+        onTap: () => {
+          print("marker " + i.toString() + " tapped"),
+
+          // setMapPins(huy[i]["lng"], huy[i]["ltd"])
+        },
       ));
     }
+    getSomePoints(huy[i]["lng"], huy[i]["ltd"]);
+
+    super.initState();
   }
 
   void getCurrentLocation() async {
@@ -99,44 +115,22 @@ class _MapFrameState extends State<MapFrame> {
         ),
         markers: Set<Marker>.of(allMarkers),
         mapType: MapType.normal,
-        onMapCreated: (GoogleMapController controller) {
-          setState(() {
-            _controller.complete(controller);
-
-            polyline.add(Polyline(
-                polylineId: PolylineId('route1R'),
-                visible: true,
-                points: routeCoords,
-                width: 4,
-                color: Colors.blue,
-                startCap: Cap.roundCap,
-                endCap: Cap.buttCap));
-          });
-        },
+        onMapCreated: onMapCreated,
       ),
     );
   }
 
-  Set<Marker> myMarker() {
+  void onMapCreated(GoogleMapController controller) {
     setState(() {
-      _markers.add(Marker(
-        // This marker id can be anything that uniquely identifies each marker.
-        markerId: MarkerId(_mainLocation.toString()),
-        position: LatLng(62.034125, 129.713635),
-        infoWindow: InfoWindow(
-          title: 'Historical City',
-          snippet: '5 Star Rating',
-        ),
-        icon: BitmapDescriptor.defaultMarker,
-      ));
-    });
-
-    return _markers;
-  }
-
-  void mapCreated(controller) {
-    setState(() {
-      _controller = controller;
+      myMapController = controller;
+      polyline.add(Polyline(
+          polylineId: PolylineId('route1'),
+          visible: true,
+          points: routeCoords,
+          width: 4,
+          color: Colors.blue,
+          startCap: Cap.roundCap,
+          endCap: Cap.buttCap));
     });
   }
 }
