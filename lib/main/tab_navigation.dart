@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:pospredsvto/main.dart';
+import 'package:pospredsvto/mainFrame.dart';
 
 class NavigationTab {
   final List<Widget> widgetList = [
-    MyApp(),
+    MainMap(),
     Icon(Icons.person),
     Icon(Icons.remove_red_eye),
   ];
