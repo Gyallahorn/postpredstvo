@@ -1,9 +1,11 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:pospredsvto/quiz/quizes.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 bool isNotCalled = true;
 bool isTapped = false;
+bool testEnded = false;
 var choosedAnswer = "";
 
 class Quiz extends StatefulWidget {
@@ -58,6 +60,11 @@ class _QuizState extends State<Quiz> {
     }
   }
 
+  void setScore() async {
+    SharedPreferences score = await SharedPreferences.getInstance();
+    score.setString('testScore', finalScore.toString());
+  }
+
 //next question
   void UpdateQuestion() {
     setState(() {
@@ -71,11 +78,13 @@ class _QuizState extends State<Quiz> {
       }
 
       if (questionNumber == quiz.quiestions.length - 1) {
-        questionNumber = 0;
+        setScore();
+        testEnded = true;
         Navigator.push(
             context,
             new MaterialPageRoute(
                 builder: (context) => new Summary(score: finalScore)));
+        questionNumber = 0;
       } else {
         questionNumber++;
       }
@@ -84,6 +93,10 @@ class _QuizState extends State<Quiz> {
 
   @override
   Widget build(BuildContext context) {
+    if (testEnded) {
+      finalScore = 0;
+      testEnded = false;
+    }
     if (isNotCalled) {
       answersBuilder();
       setState(() {

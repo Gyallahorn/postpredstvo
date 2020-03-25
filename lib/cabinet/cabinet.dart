@@ -1,8 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+String testScore = " ";
 
 class MyCabinet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    getStringValue() async {
+      SharedPreferences scores = await SharedPreferences.getInstance();
+      String scoreValue = scores.getString('testScore') ?? "0";
+      testScore = scoreValue;
+      return scoreValue;
+    }
+
+    getStringValue();
+    print(testScore + " score");
     return Material(
       child: Column(
         children: <Widget>[
@@ -84,7 +96,7 @@ class MyCabinet extends StatelessWidget {
                     ),
                     Column(
                       children: <Widget>[
-                        Text('0'),
+                        Text(testScore),
                         Text(
                           'Тест',
                           style: TextStyle(fontSize: 10),

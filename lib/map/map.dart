@@ -5,6 +5,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:google_map_polyline/google_map_polyline.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:permission/permission.dart';
+import 'dart:math';
 
 class MapFrame extends StatefulWidget {
   @override
@@ -19,6 +20,7 @@ void getGeo() async {
 
 class _MapFrameState extends State<MapFrame> {
   int i = 0;
+  var dist;
   List<Marker> allMarkers = [];
   List<Marker> _markers = [];
   Completer<GoogleMapController> _controller = Completer();
@@ -63,13 +65,21 @@ class _MapFrameState extends State<MapFrame> {
   double zoom = 12;
   List<Map<String, dynamic>> huy = [
     {"lng": 62.03484, "ltd": 129.7420426},
-    {"lng": 62.03480, "ltd": 129.7420416},
-    {"lng": 62.03452, "ltd": 129.7420476},
+    {"lng": 62.0311268, "ltd": 129.760587},
+    {"lng": 62.0167415, "ltd": 129.7045627},
     {"lng": 62.03485, "ltd": 129.7420466},
     {"lng": 62.03478, "ltd": 129.7420444}
   ];
   @override
   void initState() {
+    double distanceBetwee(lat1, lon1, lat2, lon2) {
+      var pi = 0.017453292519943295;
+      var a = 0.5 -
+          cos((lat2 - lat1) * pi) / 2 +
+          cos(lat1 * pi) * cos(lat2 * pi) * (1 - cos((lon2 - lon1) * pi)) / 2;
+      return 12742 * asin(sqrt(a));
+    }
+
     getCurrentLocation();
 
     for (int i = 0; i < 5; i++) {
@@ -78,6 +88,9 @@ class _MapFrameState extends State<MapFrame> {
         draggable: false,
         position: LatLng(huy[i]["lng"], huy[i]["ltd"]),
         onTap: () => {
+          dist = distanceBetwee(huy[i]["lng"], huy[i]["ltd"], position.latitude,
+              position.longitude),
+          print(dist),
           print("marker " + i.toString() + " tapped"),
 
           // setMapPins(huy[i]["lng"], huy[i]["ltd"])
