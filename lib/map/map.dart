@@ -22,6 +22,7 @@ void getGeo() async {
 class _MapFrameState extends State<MapFrame> {
   int i = 0;
   var dist;
+  var distance = "выберите маркер";
   List<Marker> allMarkers = [];
   List<Marker> _markers = [];
   Completer<GoogleMapController> _controller = Completer();
@@ -88,12 +89,20 @@ class _MapFrameState extends State<MapFrame> {
         markerId: MarkerId(i.toString()),
         draggable: false,
         position: LatLng(huy[i]["lng"], huy[i]["ltd"]),
-        onTap: () => {
+        onTap: () => setState(() {
           dist = distanceBetwee(huy[i]["lng"], huy[i]["ltd"], position.latitude,
-              position.longitude),
-          print(dist),
-          print("marker " + i.toString() + " tapped"),
-        },
+              position.longitude);
+          if (dist < 1.0) {
+            dist = dist * 1000;
+            dist = dist.round();
+            distance = dist.toString() + " м";
+          } else {
+            dist = dist.round();
+            distance = dist.toString() + " Км";
+          }
+          print(distance);
+          print("marker " + i.toString() + " tapped");
+        }),
       ));
     }
     getSomePoints(huy[i]["lng"], huy[i]["ltd"]);
@@ -116,14 +125,6 @@ class _MapFrameState extends State<MapFrame> {
     BorderRadiusGeometry radius = BorderRadius.only(
         topLeft: Radius.circular(20.0), topRight: Radius.circular(20.0));
 
-    ;
-
-    Future<void> _zooming(Position pos) async {
-      final GoogleMapController controller = await _controller.future;
-      controller.animateCamera(CameraUpdate.newCameraPosition(CameraPosition(
-          target: LatLng(pos.latitude, pos.longitude), zoom: 15.0)));
-    }
-
     void onMapCreated(GoogleMapController controller) async {
       setState(() {
         myMapController = controller;
@@ -142,10 +143,46 @@ class _MapFrameState extends State<MapFrame> {
         body: SlidingUpPanel(
       borderRadius: radius,
       boxShadow: boxShad,
-      minHeight: 0,
-      panel: Center(
-        child: Text('lolol'),
-      ),
+      minHeight: 20,
+      maxHeight: 350,
+      panel: Material(
+          child: Column(
+        children: <Widget>[
+          Container(
+            width: 50,
+            child: Divider(
+              thickness: 5,
+              color: Colors.grey,
+            ),
+          ),
+          SizedBox(
+            height: 17,
+          ),
+          Container(
+            height: 44,
+            width: 350,
+            color: Colors.indigo,
+          ),
+          SizedBox(
+            height: 17,
+          ),
+          Container(
+            height: 44,
+            width: 350,
+            color: Colors.lime,
+          ),
+          SizedBox(
+            height: 17,
+          ),
+          Container(
+            height: 30,
+            child: Text(
+              'Пешком ${distance}',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
+            ),
+          )
+        ],
+      )),
       body: Scaffold(
         floatingActionButton: Column(
           children: <Widget>[
@@ -182,7 +219,6 @@ class _MapFrameState extends State<MapFrame> {
             ), //find me
             GestureDetector(
               onTap: () => setState(() {
-                print('hi');
                 myMapController.animateCamera(
                   CameraUpdate.newCameraPosition(
                     CameraPosition(
