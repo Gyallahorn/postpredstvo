@@ -5,6 +5,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:google_map_polyline/google_map_polyline.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:permission/permission.dart';
+import 'package:sliding_up_panel/sliding_up_panel.dart';
 import 'dart:math';
 
 class MapFrame extends StatefulWidget {
@@ -54,8 +55,6 @@ class _MapFrameState extends State<MapFrame> {
     });
   }
 
-  setPolilines() async {}
-
   //Map
   GoogleMapController myMapController;
   // final Set<Marker> _markers = new Set();
@@ -63,6 +62,8 @@ class _MapFrameState extends State<MapFrame> {
   static Position position;
   Widget _child;
   double zoom = 12;
+  Position csreenPos;
+
   List<Map<String, dynamic>> huy = [
     {"lng": 62.03484, "ltd": 129.7420426},
     {"lng": 62.0311268, "ltd": 129.760587},
@@ -70,6 +71,7 @@ class _MapFrameState extends State<MapFrame> {
     {"lng": 62.03485, "ltd": 129.7420466},
     {"lng": 62.03478, "ltd": 129.7420444}
   ];
+
   @override
   void initState() {
     double distanceBetwee(lat1, lon1, lat2, lon2) {
@@ -81,7 +83,6 @@ class _MapFrameState extends State<MapFrame> {
     }
 
     getCurrentLocation();
-
     for (int i = 0; i < 5; i++) {
       allMarkers.add(Marker(
         markerId: MarkerId(i.toString()),
@@ -92,13 +93,10 @@ class _MapFrameState extends State<MapFrame> {
               position.longitude),
           print(dist),
           print("marker " + i.toString() + " tapped"),
-
-          // setMapPins(huy[i]["lng"], huy[i]["ltd"])
         },
       ));
     }
     getSomePoints(huy[i]["lng"], huy[i]["ltd"]);
-
     super.initState();
   }
 
@@ -111,6 +109,14 @@ class _MapFrameState extends State<MapFrame> {
 
   Widget build(BuildContext context) {
     getGeo();
+    List<Widget> floatButtons = [];
+    List<BoxShadow> boxShad = const <BoxShadow>[
+      BoxShadow(color: Colors.black, blurRadius: 8.0)
+    ];
+    BorderRadiusGeometry radius = BorderRadius.only(
+        topLeft: Radius.circular(20.0), topRight: Radius.circular(20.0));
+
+    ;
 
     Future<void> _zooming(Position pos) async {
       final GoogleMapController controller = await _controller.future;
@@ -118,32 +124,92 @@ class _MapFrameState extends State<MapFrame> {
           target: LatLng(pos.latitude, pos.longitude), zoom: 15.0)));
     }
 
-    return Material(
-      child: GoogleMap(
-        polylines: polyline,
-        zoomGesturesEnabled: true,
-        initialCameraPosition: CameraPosition(
-          target: LatLng(position.latitude, position.longitude),
-          zoom: zoom,
-        ),
-        markers: Set<Marker>.of(allMarkers),
-        mapType: MapType.normal,
-        onMapCreated: onMapCreated,
-      ),
-    );
-  }
+    void onMapCreated(GoogleMapController controller) async {
+      setState(() {
+        myMapController = controller;
+        polyline.add(Polyline(
+            polylineId: PolylineId('route1'),
+            visible: true,
+            points: routeCoords,
+            width: 4,
+            color: Colors.blue,
+            startCap: Cap.roundCap,
+            endCap: Cap.buttCap));
+      });
+    }
 
-  void onMapCreated(GoogleMapController controller) {
-    setState(() {
-      myMapController = controller;
-      polyline.add(Polyline(
-          polylineId: PolylineId('route1'),
-          visible: true,
-          points: routeCoords,
-          width: 4,
-          color: Colors.blue,
-          startCap: Cap.roundCap,
-          endCap: Cap.buttCap));
-    });
+    return Scaffold(
+        body: SlidingUpPanel(
+      borderRadius: radius,
+      boxShadow: boxShad,
+      minHeight: 0,
+      panel: Center(
+        child: Text('lolol'),
+      ),
+      body: Scaffold(
+        floatingActionButton: Column(
+          children: <Widget>[
+            SizedBox(
+              height: 200,
+            ),
+            GestureDetector(
+              child: CircleAvatar(
+                child: Icon(Icons.menu),
+              ),
+            ),
+            SizedBox(
+              height: 20,
+            ),
+            GestureDetector(
+              onTap: () =>
+                  {myMapController.animateCamera(CameraUpdate.zoomIn())},
+              child: CircleAvatar(
+                child: Icon(Icons.add),
+              ),
+            ),
+            SizedBox(
+              height: 20,
+            ),
+            GestureDetector(
+              onTap: () =>
+                  {myMapController.animateCamera(CameraUpdate.zoomOut())},
+              child: CircleAvatar(
+                child: Icon(Icons.remove),
+              ),
+            ),
+            SizedBox(
+              height: 20,
+            ), //find me
+            GestureDetector(
+              onTap: () => setState(() {
+                print('hi');
+                myMapController.animateCamera(
+                  CameraUpdate.newCameraPosition(
+                    CameraPosition(
+                      target: LatLng(position.latitude, position.longitude),
+                      zoom: 12,
+                    ),
+                  ),
+                );
+              }),
+              child: CircleAvatar(
+                child: Icon(Icons.near_me),
+              ),
+            ),
+          ],
+        ),
+        body: GoogleMap(
+          myLocationButtonEnabled: true,
+          zoomGesturesEnabled: true,
+          initialCameraPosition: CameraPosition(
+            target: LatLng(position.latitude, position.longitude),
+            zoom: zoom,
+          ),
+          markers: Set<Marker>.of(allMarkers),
+          mapType: MapType.normal,
+          onMapCreated: onMapCreated,
+        ),
+      ),
+    ));
   }
 }
