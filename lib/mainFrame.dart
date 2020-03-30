@@ -38,8 +38,6 @@ class MainMap extends StatefulWidget {
 
 class _MainMapState extends State<MainMap> {
   Widget build(BuildContext context) {
-    getGeo();
-
     return MapFrame();
   }
 }

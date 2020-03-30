@@ -5,7 +5,9 @@ import 'package:geolocator/geolocator.dart';
 import 'package:google_map_polyline/google_map_polyline.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:permission/permission.dart';
+import 'package:pospredsvto/cabinet/cabinet.dart';
 import 'package:pospredsvto/map/sliderContent.dart';
+import 'package:pospredsvto/quiz/quiz.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
 import 'dart:math';
 
@@ -15,15 +17,14 @@ class MapFrame extends StatefulWidget {
 }
 
 List<Map<String, dynamic>> markers = [];
-void getGeo() async {
-  Position position = await Geolocator()
-      .getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
-}
 
 class _MapFrameState extends State<MapFrame> {
   int i = 0;
   var dist;
   bool listCalled = false;
+  bool menuPressed = false;
+  bool profilePressed = false;
+  bool testPressed = false;
   var distance = "выберите маркер";
   List<Marker> allMarkers = [];
   List<Marker> _markers = [];
@@ -34,29 +35,14 @@ class _MapFrameState extends State<MapFrame> {
   GoogleMapPolyline googleMapPolyline =
       new GoogleMapPolyline(apiKey: "AIzaSyD1jTuV-6U9jr8R9K91sgibrZ4ETpT09UQ");
 
-  getSomePoints(double lng, double ltd) async {
-    var permissions =
-        await Permission.getPermissionsStatus([PermissionName.Location]);
-    if (permissions[0].permissionStatus == PermissionStatus.notAgain) {
-      var askpermission =
-          await Permission.requestPermissions([PermissionName.Location]);
-    } else {
-      routeCoords = await googleMapPolyline.getCoordinatesWithLocation(
-          origin: LatLng(position.latitude, position.longitude),
-          destination: LatLng(lng, ltd),
-          mode: RouteMode.walking);
-    }
-  }
+  List<BoxShadow> boxShad = const <BoxShadow>[
+    BoxShadow(color: Colors.black, blurRadius: 8.0)
+  ];
 
-  void setMapPins(double lat, double lng) {
-    setState(() {
-      _markers.add(Marker(
-          markerId: MarkerId("dest"),
-          position: LatLng(position.latitude, position.longitude)));
-      _markers
-          .add(Marker(markerId: MarkerId("dest"), position: LatLng(lat, lng)));
-    });
-  }
+  BorderRadiusGeometry radius = BorderRadius.only(
+      topLeft: Radius.circular(20.0), topRight: Radius.circular(20.0));
+
+  var listOfPlaces = List<Widget>();
 
   //Map
   GoogleMapController myMapController;
@@ -100,9 +86,13 @@ class _MapFrameState extends State<MapFrame> {
       "street": "Под Пример 1"
     }
   ];
+//get my position
+  void getGeo() async {
+    Position position = await Geolocator()
+        .getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+  }
 
-  var listOfPlaces = List<Widget>();
-
+//set list view from array
   void listBuilder() async {
     for (int i = 0; i < markersList.length; i++) {
       listOfPlaces.add(GestureDetector(
@@ -162,6 +152,30 @@ class _MapFrameState extends State<MapFrame> {
     }
   }
 
+  getSomePoints(double lng, double ltd) async {
+    var permissions =
+        await Permission.getPermissionsStatus([PermissionName.Location]);
+    if (permissions[0].permissionStatus == PermissionStatus.notAgain) {
+      var askpermission =
+          await Permission.requestPermissions([PermissionName.Location]);
+    } else {
+      routeCoords = await googleMapPolyline.getCoordinatesWithLocation(
+          origin: LatLng(position.latitude, position.longitude),
+          destination: LatLng(lng, ltd),
+          mode: RouteMode.walking);
+    }
+  }
+
+  void setMapPins(double lat, double lng) {
+    setState(() {
+      _markers.add(Marker(
+          markerId: MarkerId("dest"),
+          position: LatLng(position.latitude, position.longitude)));
+      _markers
+          .add(Marker(markerId: MarkerId("dest"), position: LatLng(lat, lng)));
+    });
+  }
+
   @override
   void initState() {
     double distanceBetwee(lat1, lon1, lat2, lon2) {
@@ -208,13 +222,6 @@ class _MapFrameState extends State<MapFrame> {
   Widget build(BuildContext context) {
     getGeo();
 
-    List<BoxShadow> boxShad = const <BoxShadow>[
-      BoxShadow(color: Colors.black, blurRadius: 8.0)
-    ];
-
-    BorderRadiusGeometry radius = BorderRadius.only(
-        topLeft: Radius.circular(20.0), topRight: Radius.circular(20.0));
-
     void onMapCreated(GoogleMapController controller) async {
       setState(() {
         myMapController = controller;
@@ -235,144 +242,690 @@ class _MapFrameState extends State<MapFrame> {
     } else {
       print('listAlredyCalled');
     }
-    return Material(
-      child: Scaffold(
-          body: SlidingUpPanel(
-        controller: panelController,
-        borderRadius: radius,
-        boxShadow: boxShad,
-        minHeight: 20,
-        maxHeight: 350,
-        panel: Material(
-            child: Column(
-          children: <Widget>[
-            Container(
-              width: 50,
-              child: Divider(
-                thickness: 5,
-                color: Colors.grey,
-              ),
-            ),
-            SizedBox(
-              height: 17,
-            ),
-            Expanded(
-              child: ListView(
-                children: listOfPlaces,
-              ),
-            )
-          ],
-        )
-            //     child: Column(
-            //   children: <Widget>[
-            //     Container(
-            //       width: 50,
-            //       child: Divider(
-            //         thickness: 5,
-            //         color: Colors.grey,
-            //       ),
-            //     ),
-            //     SizedBox(
-            //       height: 17,
-            //     ),
-            //     Container(
-            //       height: 44,
-            //       width: 350,
-            //       color: Colors.indigo,
-            //     ),
-            //     SizedBox(
-            //       height: 17,
-            //     ),
-            //     Container(
-            //       height: 44,
-            //       width: 350,
-            //       color: Colors.lime,
-            //     ),
-            //     SizedBox(
-            //       height: 17,
-            //     ),
-            //     Container(
-            //       height: 30,
-            //       child: Text(
-            //         'Пешком ${distance}',
-            //         style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
-            //       ),
-            //     )
-            //   ],
-            // )
-            ),
-        body: Scaffold(
-          floatingActionButton: Column(
+    if (!menuPressed) {
+      return Material(
+        child: Scaffold(
+            body: SlidingUpPanel(
+          controller: panelController,
+          borderRadius: radius,
+          boxShadow: boxShad,
+          minHeight: 20,
+          maxHeight: 350,
+          //Panel
+          panel: Material(
+              child: Column(
             children: <Widget>[
-              SizedBox(
-                height: 200,
-              ),
-              GestureDetector(
-                onTap: () {
-                  // Navigator.push(
-                  //     context,
-                  //     MaterialPageRoute(
-                  //         builder: (context) => SliderContent(
-                  //               myMapController: myMapController,
-                  //             )));
-                },
-                child: CircleAvatar(
-                  child: Icon(Icons.menu),
+              Container(
+                width: 50,
+                child: Divider(
+                  thickness: 5,
+                  color: Colors.grey,
                 ),
               ),
               SizedBox(
-                height: 20,
+                height: 17,
               ),
-              GestureDetector(
-                onTap: () =>
-                    {myMapController.animateCamera(CameraUpdate.zoomIn())},
-                child: CircleAvatar(
-                  child: Icon(Icons.add),
+              Expanded(
+                child: ListView(
+                  children: listOfPlaces,
                 ),
-              ),
-              SizedBox(
-                height: 20,
-              ),
-              GestureDetector(
-                onTap: () =>
-                    {myMapController.animateCamera(CameraUpdate.zoomOut())},
-                child: CircleAvatar(
-                  child: Icon(Icons.remove),
-                ),
-              ),
-              SizedBox(
-                height: 20,
-              ), //find me
-              GestureDetector(
-                onTap: () => setState(() {
-                  myMapController.animateCamera(
-                    CameraUpdate.newCameraPosition(
-                      CameraPosition(
-                        target: LatLng(position.latitude, position.longitude),
-                        zoom: 12,
-                      ),
-                    ),
-                  );
-                }),
-                child: CircleAvatar(
-                  child: Icon(Icons.near_me),
-                ),
-              ),
+              )
             ],
-          ),
-          body: GoogleMap(
-            myLocationButtonEnabled: true,
-            zoomGesturesEnabled: true,
-            initialCameraPosition: CameraPosition(
-              target: LatLng(position.latitude, position.longitude),
-              zoom: zoom,
+          )
+              //     child: Column(
+              //   children: <Widget>[
+              //     Container(
+              //       width: 50,
+              //       child: Divider(
+              //         thickness: 5,
+              //         color: Colors.grey,
+              //       ),
+              //     ),
+              //     SizedBox(
+              //       height: 17,
+              //     ),
+              //     Container(
+              //       height: 44,
+              //       width: 350,
+              //       color: Colors.indigo,
+              //     ),
+              //     SizedBox(
+              //       height: 17,
+              //     ),
+              //     Container(
+              //       height: 44,
+              //       width: 350,
+              //       color: Colors.lime,
+              //     ),
+              //     SizedBox(
+              //       height: 17,
+              //     ),
+              //     Container(
+              //       height: 30,
+              //       child: Text(
+              //         'Пешком ${distance}',
+              //         style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
+              //       ),
+              //     )
+              //   ],
+              // )
+              ),
+          //MainScreen
+          body: Scaffold(
+            floatingActionButton: Column(
+              children: <Widget>[
+                SizedBox(
+                  height: 200,
+                ),
+
+                GestureDetector(
+                  onTap: () {
+                    panelController.open();
+                  },
+                  child: CircleAvatar(
+                    backgroundColor: Colors.white,
+                    child: Icon(
+                      Icons.menu,
+                      color: Colors.blue,
+                    ),
+                  ),
+                ),
+                SizedBox(
+                  height: 20,
+                ),
+                GestureDetector(
+                  onTap: () =>
+                      {myMapController.animateCamera(CameraUpdate.zoomIn())},
+                  child: CircleAvatar(
+                    backgroundColor: Colors.white,
+                    child: Icon(
+                      Icons.add,
+                      color: Colors.blue,
+                    ),
+                  ),
+                ),
+                SizedBox(
+                  height: 20,
+                ),
+                GestureDetector(
+                  onTap: () =>
+                      {myMapController.animateCamera(CameraUpdate.zoomOut())},
+                  child: CircleAvatar(
+                    backgroundColor: Colors.white,
+                    child: Icon(
+                      Icons.remove,
+                      color: Colors.blue,
+                    ),
+                  ),
+                ),
+                SizedBox(
+                  height: 20,
+                ), //find me
+                GestureDetector(
+                  onTap: () => setState(() {
+                    myMapController.animateCamera(
+                      CameraUpdate.newCameraPosition(
+                        CameraPosition(
+                          target: LatLng(position.latitude, position.longitude),
+                          zoom: 12,
+                        ),
+                      ),
+                    );
+                  }),
+                  child: CircleAvatar(
+                    backgroundColor: Colors.white,
+                    child: Icon(
+                      Icons.near_me,
+                      color: Colors.blue,
+                    ),
+                  ),
+                ),
+                SizedBox(
+                  height: 70,
+                ),
+                GestureDetector(
+                  onTap: () => setState(() {
+                    menuPressed = true;
+                    panelController.open();
+                  }),
+                  child: CircleAvatar(
+                    backgroundColor: Colors.white,
+                    child: Icon(
+                      Icons.keyboard_arrow_up,
+                      color: Colors.blue,
+                    ),
+                  ),
+                )
+              ],
             ),
-            markers: Set<Marker>.of(allMarkers),
-            mapType: MapType.normal,
-            onMapCreated: onMapCreated,
+            body: GoogleMap(
+              myLocationButtonEnabled: true,
+              zoomGesturesEnabled: true,
+              initialCameraPosition: CameraPosition(
+                target: LatLng(position.latitude, position.longitude),
+                zoom: zoom,
+              ),
+              markers: Set<Marker>.of(allMarkers),
+              mapType: MapType.normal,
+              onMapCreated: onMapCreated,
+            ),
           ),
-        ),
-      )),
-    );
+        )),
+      );
+    }
+
+///////////////////////////////////
+
+    if (profilePressed) {
+      return Material(
+        child: Scaffold(
+            body: SlidingUpPanel(
+          controller: panelController,
+          borderRadius: radius,
+          boxShadow: boxShad,
+          minHeight: 20,
+          maxHeight: 350,
+          //Panel
+          panel: MyCabinet(),
+          //MainScreen
+          body: Scaffold(
+            floatingActionButton: Column(
+              children: <Widget>[
+                SizedBox(
+                  height: 127,
+                ),
+                GestureDetector(
+                  child: Container(
+                    color: Colors.transparent,
+                    height: 80,
+                    width: 80,
+                    child: new Container(
+                      child: Column(
+                        children: <Widget>[
+                          SizedBox(
+                            height: 10,
+                          ),
+                          Icon(
+                            Icons.account_circle,
+                            size: 30,
+                            color: Colors.blue,
+                          ),
+                          Text('Профиль')
+                        ],
+                      ),
+                      decoration: new BoxDecoration(
+                          color: Colors.white,
+                          borderRadius:
+                              new BorderRadius.all(Radius.circular(12))),
+                    ),
+                  ),
+                ),
+                SizedBox(
+                  height: 20,
+                ),
+                GestureDetector(
+                  onTap: () => setState(() {
+                    testPressed = true;
+                    profilePressed = false;
+                    panelController.open();
+                  }),
+                  child: Container(
+                    color: Colors.transparent,
+                    height: 80,
+                    width: 80,
+                    child: new Container(
+                      child: Column(
+                        children: <Widget>[
+                          SizedBox(
+                            height: 10,
+                          ),
+                          Icon(
+                            Icons.toc,
+                            size: 30,
+                            color: Colors.blue,
+                          ),
+                          Text('Тесты')
+                        ],
+                      ),
+                      decoration: new BoxDecoration(
+                          color: Colors.white,
+                          borderRadius:
+                              new BorderRadius.all(Radius.circular(12))),
+                    ),
+                  ),
+                ),
+                SizedBox(
+                  height: 20,
+                ),
+                GestureDetector(
+                  child: Container(
+                    color: Colors.transparent,
+                    height: 80,
+                    width: 80,
+                    child: new Container(
+                      child: Column(
+                        children: <Widget>[
+                          SizedBox(
+                            height: 10,
+                          ),
+                          Icon(
+                            Icons.photo_library,
+                            size: 30,
+                            color: Colors.blue,
+                          ),
+                          Text('Медиа')
+                        ],
+                      ),
+                      decoration: new BoxDecoration(
+                          color: Colors.white,
+                          borderRadius:
+                              new BorderRadius.all(Radius.circular(12))),
+                    ),
+                  ),
+                ),
+                SizedBox(
+                  height: 20,
+                ), //find me
+                GestureDetector(
+                  child: Container(
+                    color: Colors.transparent,
+                    height: 80,
+                    width: 80,
+                    child: new Container(
+                      child: Column(
+                        children: <Widget>[
+                          SizedBox(
+                            height: 10,
+                          ),
+                          Icon(
+                            Icons.language,
+                            size: 30,
+                            color: Colors.blue,
+                          ),
+                          Text('Язык')
+                        ],
+                      ),
+                      decoration: new BoxDecoration(
+                          color: Colors.white,
+                          borderRadius:
+                              new BorderRadius.all(Radius.circular(12))),
+                    ),
+                  ),
+                ),
+                SizedBox(
+                  height: 70,
+                ),
+                GestureDetector(
+                  child: CircleAvatar(
+                    backgroundColor: Colors.white,
+                    child: Icon(
+                      Icons.keyboard_arrow_up,
+                      color: Colors.blue,
+                    ),
+                  ),
+                )
+              ],
+            ),
+            body: GoogleMap(
+              myLocationButtonEnabled: true,
+              zoomGesturesEnabled: true,
+              initialCameraPosition: CameraPosition(
+                target: LatLng(position.latitude, position.longitude),
+                zoom: zoom,
+              ),
+              markers: Set<Marker>.of(allMarkers),
+              mapType: MapType.normal,
+              onMapCreated: onMapCreated,
+            ),
+          ),
+        )),
+      );
+    }
+
+///////////////////////////////////////////////////////////
+
+    if (testPressed) {
+      return Material(
+        child: Scaffold(
+            body: SlidingUpPanel(
+          controller: panelController,
+          borderRadius: radius,
+          boxShadow: boxShad,
+          minHeight: 20,
+          maxHeight: 350,
+          //Panel
+          panel: Quiz(),
+          //MainScreen
+          body: Scaffold(
+            floatingActionButton: Column(
+              children: <Widget>[
+                SizedBox(
+                  height: 127,
+                ),
+                GestureDetector(
+                  onTap: () => setState(() {
+                    profilePressed = true;
+                    testPressed = false;
+                    panelController.open();
+                  }),
+                  child: Container(
+                    color: Colors.transparent,
+                    height: 80,
+                    width: 80,
+                    child: new Container(
+                      child: Column(
+                        children: <Widget>[
+                          SizedBox(
+                            height: 10,
+                          ),
+                          Icon(
+                            Icons.account_circle,
+                            size: 30,
+                            color: Colors.blue,
+                          ),
+                          Text('Профиль')
+                        ],
+                      ),
+                      decoration: new BoxDecoration(
+                          color: Colors.white,
+                          borderRadius:
+                              new BorderRadius.all(Radius.circular(12))),
+                    ),
+                  ),
+                ),
+                SizedBox(
+                  height: 20,
+                ),
+                GestureDetector(
+                  onTap: () => setState(() {
+                    testPressed = true;
+                    profilePressed = false;
+                    panelController.open();
+                  }),
+                  child: Container(
+                    color: Colors.transparent,
+                    height: 80,
+                    width: 80,
+                    child: new Container(
+                      child: Column(
+                        children: <Widget>[
+                          SizedBox(
+                            height: 10,
+                          ),
+                          Icon(
+                            Icons.toc,
+                            size: 30,
+                            color: Colors.blue,
+                          ),
+                          Text('Тесты')
+                        ],
+                      ),
+                      decoration: new BoxDecoration(
+                          color: Colors.white,
+                          borderRadius:
+                              new BorderRadius.all(Radius.circular(12))),
+                    ),
+                  ),
+                ),
+                SizedBox(
+                  height: 20,
+                ),
+                GestureDetector(
+                  child: Container(
+                    color: Colors.transparent,
+                    height: 80,
+                    width: 80,
+                    child: new Container(
+                      child: Column(
+                        children: <Widget>[
+                          SizedBox(
+                            height: 10,
+                          ),
+                          Icon(
+                            Icons.photo_library,
+                            size: 30,
+                            color: Colors.blue,
+                          ),
+                          Text('Медиа')
+                        ],
+                      ),
+                      decoration: new BoxDecoration(
+                          color: Colors.white,
+                          borderRadius:
+                              new BorderRadius.all(Radius.circular(12))),
+                    ),
+                  ),
+                ),
+                SizedBox(
+                  height: 20,
+                ), //find me
+                GestureDetector(
+                  child: Container(
+                    color: Colors.transparent,
+                    height: 80,
+                    width: 80,
+                    child: new Container(
+                      child: Column(
+                        children: <Widget>[
+                          SizedBox(
+                            height: 10,
+                          ),
+                          Icon(
+                            Icons.language,
+                            size: 30,
+                            color: Colors.blue,
+                          ),
+                          Text('Язык')
+                        ],
+                      ),
+                      decoration: new BoxDecoration(
+                          color: Colors.white,
+                          borderRadius:
+                              new BorderRadius.all(Radius.circular(12))),
+                    ),
+                  ),
+                ),
+                SizedBox(
+                  height: 70,
+                ),
+                GestureDetector(
+                  child: CircleAvatar(
+                    backgroundColor: Colors.white,
+                    child: Icon(
+                      Icons.keyboard_arrow_up,
+                      color: Colors.blue,
+                    ),
+                  ),
+                )
+              ],
+            ),
+            body: GoogleMap(
+              myLocationButtonEnabled: true,
+              zoomGesturesEnabled: true,
+              initialCameraPosition: CameraPosition(
+                target: LatLng(position.latitude, position.longitude),
+                zoom: zoom,
+              ),
+              markers: Set<Marker>.of(allMarkers),
+              mapType: MapType.normal,
+              onMapCreated: onMapCreated,
+            ),
+          ),
+        )),
+      );
+    }
+
+    /////////////////////////////////////////
+
+    else {
+      return Material(
+        child: Scaffold(
+            body: SlidingUpPanel(
+          controller: panelController,
+          borderRadius: radius,
+          boxShadow: boxShad,
+          minHeight: 20,
+          maxHeight: 350,
+          //Panel
+          panel: MyCabinet(),
+          //MainScreen
+          body: Scaffold(
+            floatingActionButton: Column(
+              children: <Widget>[
+                SizedBox(
+                  height: 127,
+                ),
+                GestureDetector(
+                  onTap: () => setState(() {
+                    profilePressed = true;
+                    testPressed = false;
+                    panelController.open();
+                  }),
+                  child: Container(
+                    color: Colors.transparent,
+                    height: 80,
+                    width: 80,
+                    child: new Container(
+                      child: Column(
+                        children: <Widget>[
+                          SizedBox(
+                            height: 10,
+                          ),
+                          Icon(
+                            Icons.account_circle,
+                            size: 30,
+                            color: Colors.blue,
+                          ),
+                          Text('Профиль')
+                        ],
+                      ),
+                      decoration: new BoxDecoration(
+                          color: Colors.white,
+                          borderRadius:
+                              new BorderRadius.all(Radius.circular(12))),
+                    ),
+                  ),
+                ),
+                SizedBox(
+                  height: 20,
+                ),
+                GestureDetector(
+                  onTap: () => setState(() {
+                    testPressed = true;
+                    profilePressed = false;
+                    panelController.open();
+                  }),
+                  child: Container(
+                    color: Colors.transparent,
+                    height: 80,
+                    width: 80,
+                    child: new Container(
+                      child: Column(
+                        children: <Widget>[
+                          SizedBox(
+                            height: 10,
+                          ),
+                          Icon(
+                            Icons.toc,
+                            size: 30,
+                            color: Colors.blue,
+                          ),
+                          Text('Тесты')
+                        ],
+                      ),
+                      decoration: new BoxDecoration(
+                          color: Colors.white,
+                          borderRadius:
+                              new BorderRadius.all(Radius.circular(12))),
+                    ),
+                  ),
+                ),
+                SizedBox(
+                  height: 20,
+                ),
+                GestureDetector(
+                  child: Container(
+                    color: Colors.transparent,
+                    height: 80,
+                    width: 80,
+                    child: new Container(
+                      child: Column(
+                        children: <Widget>[
+                          SizedBox(
+                            height: 10,
+                          ),
+                          Icon(
+                            Icons.photo_library,
+                            size: 30,
+                            color: Colors.blue,
+                          ),
+                          Text('Медиа')
+                        ],
+                      ),
+                      decoration: new BoxDecoration(
+                          color: Colors.white,
+                          borderRadius:
+                              new BorderRadius.all(Radius.circular(12))),
+                    ),
+                  ),
+                ),
+                SizedBox(
+                  height: 20,
+                ), //find me
+                GestureDetector(
+                  child: Container(
+                    color: Colors.transparent,
+                    height: 80,
+                    width: 80,
+                    child: new Container(
+                      child: Column(
+                        children: <Widget>[
+                          SizedBox(
+                            height: 10,
+                          ),
+                          Icon(
+                            Icons.language,
+                            size: 30,
+                            color: Colors.blue,
+                          ),
+                          Text('Язык')
+                        ],
+                      ),
+                      decoration: new BoxDecoration(
+                          color: Colors.white,
+                          borderRadius:
+                              new BorderRadius.all(Radius.circular(12))),
+                    ),
+                  ),
+                ),
+                SizedBox(
+                  height: 70,
+                ),
+                GestureDetector(
+                  child: CircleAvatar(
+                    backgroundColor: Colors.white,
+                    child: Icon(
+                      Icons.keyboard_arrow_up,
+                      color: Colors.blue,
+                    ),
+                  ),
+                )
+              ],
+            ),
+            body: GoogleMap(
+              myLocationButtonEnabled: true,
+              zoomGesturesEnabled: true,
+              initialCameraPosition: CameraPosition(
+                target: LatLng(position.latitude, position.longitude),
+                zoom: zoom,
+              ),
+              markers: Set<Marker>.of(allMarkers),
+              mapType: MapType.normal,
+              onMapCreated: onMapCreated,
+            ),
+          ),
+        )),
+      );
+    }
   }
 }

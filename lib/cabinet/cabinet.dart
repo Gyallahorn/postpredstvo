@@ -13,130 +13,201 @@ class MyCabinet extends StatelessWidget {
       return scoreValue;
     }
 
+    List<Map<String, dynamic>> markersList = [
+      {
+        "lng": 62.03484,
+        "ltd": 129.7420426,
+        "name": "Пример 1",
+        "street": "Под Пример 1"
+      },
+      {
+        "lng": 62.0311268,
+        "ltd": 129.760587,
+        "name": "Пример 2",
+        "street": "Под Пример 1"
+      },
+      {
+        "lng": 62.0167415,
+        "ltd": 129.7045627,
+        "name": "Пример 3",
+        "street": "Под Пример 1"
+      },
+      {
+        "lng": 62.03485,
+        "ltd": 129.7420466,
+        "name": "Пример 4",
+        "street": "Под Пример 1"
+      },
+      {
+        "lng": 62.03478,
+        "ltd": 129.7420444,
+        "name": "Пример 5",
+        "street": "Под Пример 1"
+      }
+    ];
+    var listOfPlaces = List<Widget>();
+
+    void listBuilder() async {
+      for (int i = 0; i < markersList.length; i++) {
+        listOfPlaces.add(GestureDetector(
+          onTap: () => {},
+          child: Column(
+            children: <Widget>[
+              Row(
+                children: <Widget>[
+                  SizedBox(
+                    width: 15,
+                  ),
+                  CircleAvatar(
+                    radius: 30,
+                    backgroundColor: Colors.white,
+                    child: Icon(
+                      Icons.location_on,
+                      color: Colors.grey,
+                    ),
+                  ),
+                  SizedBox(
+                    width: 12,
+                  ),
+                  Column(
+                    children: <Widget>[
+                      Text(
+                        markersList[i]["name"],
+                        style: TextStyle(
+                            fontSize: 15, fontWeight: FontWeight.bold),
+                      ),
+                      SizedBox(
+                        height: 4,
+                      ),
+                      Text(
+                        markersList[i]["street"],
+                        style: TextStyle(fontSize: 13, color: Colors.grey[400]),
+                      )
+                    ],
+                  )
+                ],
+              ),
+              SizedBox(
+                height: 14,
+              )
+            ],
+          ),
+        ));
+      }
+    }
+
     getStringValue();
+    listBuilder();
     print(testScore + " score");
     return Material(
       child: Column(
         children: <Widget>[
-          SizedBox(
-            height: 20,
-          ),
           Container(
-            // padding: EdgeInsets.only(left: 10),
-            child: Text(
-              'Профиль',
-              style: TextStyle(fontSize: 20),
-            ),
-          ),
-          SizedBox(
-            height: 20,
-          ),
-          Container(
-            height: 180,
-            child: Image(
-              image: NetworkImage(
-                  'http://playminigames.ru/content/gameimagecontent/quake3_1_2c7a197d4f97420cba0cb3f8163716c8.jpg'),
-            ),
-          ),
-          SizedBox(
-            height: 20,
-          ),
-          Container(
-            child: Row(
-              children: <Widget>[
-                Container(
-                  child: Divider(
-                    color: Colors.blue,
-                  ),
-                ),
-                SizedBox(
-                  width: 50,
-                ),
-                Container(
-                  child: Divider(
-                    color: Colors.blue,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Container(
-            padding: EdgeInsets.symmetric(horizontal: 60),
-            child: Text(
-              'Вам необходимо пройти все меята памяти, затем выполнить тесты, после чего Вы будете приглашены на очный этап квеста а Постоянном Представительстве Республики Саха(Якутия) При Президенте РФ',
-              style: TextStyle(fontSize: 10, color: Colors.grey),
-            ),
-          ),
-          SizedBox(
-            height: 10,
-          ),
-          Container(
-            width: 180,
+            width: 50,
             child: Divider(
-              color: Colors.blue,
+              thickness: 5,
+              color: Colors.grey,
             ),
           ),
-          Container(
-            child: Column(children: <Widget>[
-              Container(
-                padding: EdgeInsets.only(left: 90),
-                child: Row(
-                  children: <Widget>[
-                    Column(
+          SizedBox(
+            height: 17,
+          ),
+          Expanded(
+            child: ListView(
+              children: <Widget>[
+                    Row(
                       children: <Widget>[
-                        Text('0/9'),
-                        Text(
-                          'Мест',
-                          style: TextStyle(fontSize: 10),
-                        )
+                        SizedBox(
+                          width: 165,
+                        ),
+                        Container(
+                          width: 86,
+                          height: 86,
+                          child: CircleAvatar(
+                            backgroundColor: Colors.blue,
+                          ),
+                        ),
+                        SizedBox(
+                          height: 15,
+                          width: 81,
+                        ),
+                        Icon(Icons.edit)
                       ],
                     ),
                     SizedBox(
-                      width: 170,
+                      height: 16,
                     ),
-                    Column(
-                      children: <Widget>[
-                        Text(testScore),
-                        Text(
-                          'Тест',
-                          style: TextStyle(fontSize: 10),
-                        ),
-                      ],
+                    Center(
+                      child: Text(
+                        'Имя Пользовотеля',
+                        style: TextStyle(
+                            fontSize: 17, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                    SizedBox(
+                      height: 17,
+                    ),
+                    Container(
+                        padding: EdgeInsets.only(left: 165),
+                        child: Row(
+                          children: <Widget>[
+                            Icon(
+                              Icons.location_on,
+                              color: Colors.grey,
+                            ),
+                            Text(
+                              'Город',
+                              style: TextStyle(fontSize: 15),
+                            )
+                          ],
+                        )),
+                    SizedBox(
+                      height: 24,
+                    ),
+                    Container(
+                      padding: EdgeInsets.only(left: 110),
+                      child: Row(
+                        children: <Widget>[
+                          Column(
+                            children: <Widget>[
+                              Text('0'),
+                              SizedBox(
+                                height: 6,
+                              ),
+                              Text('Задания')
+                            ],
+                          ),
+                          SizedBox(
+                            width: 76,
+                          ),
+                          Column(
+                            children: <Widget>[
+                              Text('0'),
+                              SizedBox(
+                                height: 6,
+                              ),
+                              Text('Тесты')
+                            ],
+                          )
+                        ],
+                      ),
+                    ),
+                    SizedBox(
+                      height: 24,
+                    ),
+                    Center(
+                      child: Text(
+                        'Выполненные задания',
+                        style: TextStyle(
+                            fontSize: 17, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                    SizedBox(
+                      height: 29,
                     )
-                  ],
-                ),
-              ),
-              SizedBox(
-                height: 10,
-              ),
-              Container(
-                padding: EdgeInsets.only(right: 205),
-                child: Column(
-                  children: <Widget>[
-                    Text('0/5'),
-                    Text(
-                      'Мест',
-                      style: TextStyle(fontSize: 10),
-                    )
-                  ],
-                ),
-              ),
-              SizedBox(
-                height: 10,
-              ),
-              Container(
-                padding: EdgeInsets.only(right: 205),
-                child: Column(
-                  children: <Widget>[
-                    Text('0/5'),
-                    Text(
-                      'Мест',
-                      style: TextStyle(fontSize: 10),
-                    )
-                  ],
-                ),
-              )
-            ]),
+                  ] +
+                  listOfPlaces,
+            ),
           )
         ],
       ),
