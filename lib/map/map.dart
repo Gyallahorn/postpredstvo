@@ -49,6 +49,10 @@ class _MapFrameState extends State<MapFrame> {
   var listOfFloatButtons2 = List<Widget>();
   var listOfFloatButtons1 = List<Widget>();
   var listOfFloatButtons = List<Widget>();
+  var makeRouteButton0;
+  var makeRouteButtonCancel;
+  var makeRouteButton2;
+  var makeRouteButton1;
   var makeRoutePanel;
 
   //Map
@@ -128,7 +132,7 @@ class _MapFrameState extends State<MapFrame> {
               ),
             ),
           );
-          routeBuilder(i);
+          routeBuilder(i, makeRouteButton2, makeRouteButton1);
         }),
         child: Column(
           children: <Widget>[
@@ -175,7 +179,9 @@ class _MapFrameState extends State<MapFrame> {
     }
   }
 
-  void routeBuilder(int i) {
+  void routeBuilder(int i, makeRouteButton, makeRouteButton1) {
+    makeRouteButton0 = makeRouteButton1;
+    makeRouteButtonCancel = makeRouteButton;
     setState(() {
       dist = distanceBetwee(markersList[i]["lng"], markersList[i]["ltd"],
           position.latitude, position.longitude);
@@ -205,41 +211,54 @@ class _MapFrameState extends State<MapFrame> {
             child: Row(
               children: <Widget>[
                 Container(
-                  width: 44,
-                  height: 44,
+                  width: 60,
+                  height: 60,
                   decoration: new BoxDecoration(
                       shape: BoxShape.circle,
                       image: new DecorationImage(
+                          fit: BoxFit.cover,
                           image: new NetworkImage(markersList[i]["img"]))),
-                  child: Image.network(markersList[i]["img"]),
+                ),
+                SizedBox(
+                  width: 8,
                 ),
                 Column(
                   children: <Widget>[
-                    Text(
-                      markersList[i]["name"],
-                      style:
-                          TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                    SizedBox(
+                      height: 8,
                     ),
-                    Text(
-                      markersList[i]["street"],
-                      style: TextStyle(fontSize: 13, color: Colors.grey),
+                    Container(
+                      padding: EdgeInsets.only(left: 10),
+                      child: Text(
+                        markersList[i]["name"],
+                        style: TextStyle(
+                            fontSize: 17, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                    SizedBox(
+                      height: 10,
+                    ),
+                    Container(
+                      padding: EdgeInsets.only(left: 10),
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        markersList[i]["street"],
+                        style: TextStyle(fontSize: 15, color: Colors.grey),
+                      ),
                     )
                   ],
                 )
               ],
             ),
             height: 60,
-            color: Colors.indigo,
           ),
           SizedBox(
             height: 17,
           ),
           Container(
-            alignment: Alignment.centerLeft,
-            padding: EdgeInsets.only(left: 15),
-            child: Text(markersList[i]["street"]),
+            padding: EdgeInsets.only(left: 15, right: 15),
+            child: makeRouteButton0,
             height: 60,
-            color: Colors.lime,
           ),
           SizedBox(
             height: 17,
@@ -303,6 +322,78 @@ class _MapFrameState extends State<MapFrame> {
 
   @override
   void initState() {
+    makeRouteButton1 = Container(
+      width: 380,
+      height: 60,
+      child: RaisedButton(
+          color: Colors.white,
+          child: Row(
+            children: <Widget>[
+              SizedBox(
+                width: 70,
+              ),
+              Icon(
+                Icons.directions_walk,
+                color: Colors.blue,
+              ),
+              Text("Проложить маршрут",
+                  style: TextStyle(
+                    fontSize: 17,
+                    color: Colors.blue,
+                  ))
+            ],
+          ),
+          shape: RoundedRectangleBorder(
+              borderRadius: new BorderRadius.circular(30.0),
+              side: BorderSide(color: Colors.blue)),
+          onPressed: () => setState(() {
+                makeRouteButton0 = makeRouteButtonCancel;
+              })),
+    );
+
+    makeRouteButton2 = Container(
+      width: 380,
+      height: 60,
+      child: Row(
+        children: <Widget>[
+          Row(
+            children: <Widget>[
+              Icon(
+                Icons.directions_walk,
+                color: Colors.blue,
+              ),
+              Text(
+                'В пути',
+                style: TextStyle(color: Colors.blue),
+              )
+            ],
+          ),
+          SizedBox(
+            width: 20,
+          ),
+          RaisedButton(
+              color: Colors.white,
+              child: Row(
+                children: <Widget>[
+                  Icon(
+                    Icons.clear,
+                    color: Colors.blue,
+                  ),
+                  Text("Отменить маршрут",
+                      style: TextStyle(
+                        fontSize: 17,
+                        color: Colors.blue,
+                      ))
+                ],
+              ),
+              shape: RoundedRectangleBorder(
+                  borderRadius: new BorderRadius.circular(30.0),
+                  side: BorderSide(color: Colors.blue)),
+              onPressed: () => setState(() {})),
+        ],
+      ),
+    );
+
 // Profile,Test, Media,Language buttons
     listOfFloatButtons1 = <Widget>[
       SizedBox(
@@ -571,7 +662,7 @@ class _MapFrameState extends State<MapFrame> {
           print(distance);
           print("marker " + i.toString() + " tapped");
 
-          routeBuilder(i);
+          routeBuilder(i, makeRouteButton2, makeRouteButton1);
           panelController.open();
         }),
       ));
