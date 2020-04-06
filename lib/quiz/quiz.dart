@@ -7,6 +7,7 @@ bool isNotCalled = true;
 bool isTapped = false;
 bool testEnded = false;
 var choosedAnswer = "";
+int group = 1;
 
 class Quiz extends StatefulWidget {
   @override
@@ -24,7 +25,6 @@ class _QuizState extends State<Quiz> {
   // init answers buttons
   void answersBuilder() async {
     for (int i = 0; i < quiz.choices[questionNumber].length; i++) {
-      print("kek");
       answersWidgets.add(GestureDetector(
         onTap: () => setState(() {
           isTapped = true;
@@ -38,9 +38,15 @@ class _QuizState extends State<Quiz> {
               color: Colors.grey.shade100,
               child: Row(
                 children: <Widget>[
-                  CircleAvatar(
-                    radius: 10,
-                    backgroundColor: Colors.grey,
+                  Radio(
+                    value: i + 1,
+                    groupValue: group,
+                    onChanged: (T) {
+                      print(i);
+                      setState(() {
+                        group = T;
+                      });
+                    },
                   ),
                   SizedBox(
                     width: 20,
@@ -97,14 +103,9 @@ class _QuizState extends State<Quiz> {
       finalScore = 0;
       testEnded = false;
     }
-    if (isNotCalled) {
-      answersBuilder();
-      setState(() {
-        isNotCalled = false;
-      });
-    } else {
-      print("is already exist");
-    }
+    answersWidgets.clear();
+    answersBuilder();
+
     return Material(
       child: Container(
         child: Column(
@@ -128,14 +129,14 @@ class _QuizState extends State<Quiz> {
               height: 33,
             ),
             Container(
-              height: 250,
+              height: 292,
               padding: EdgeInsets.only(left: 15.0, right: 15),
               child: Column(
                 children: answersWidgets,
               ),
             ),
             SizedBox(
-              height: 94,
+              height: 90,
             ),
             Align(
               alignment: Alignment.bottomCenter,
