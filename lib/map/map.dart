@@ -12,6 +12,8 @@ import 'package:pospredsvto/quiz/quiz.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
 import 'dart:math';
 
+import 'marker_list.dart';
+
 class MapFrame extends StatefulWidget {
   @override
   _MapFrameState createState() => _MapFrameState();
@@ -64,54 +66,7 @@ class _MapFrameState extends State<MapFrame> {
   double zoom = 12;
   Position csreenPos;
   PanelController panelController = new PanelController();
-
-  List<Map<String, dynamic>> markersList = [
-    {
-      "lng": 62.03484,
-      "ltd": 129.7420426,
-      "name": "Пример 1",
-      "street": "Под Пример 1",
-      "img":
-          "https://lh5.googleusercontent.com/p/AF1QipOijOBA1kHiLFOhuExvsnk2FwC4R-iQGNFpY-Wy=w408-h544-k-no",
-      "desc": "Пример описания 1"
-    },
-    {
-      "lng": 62.0311268,
-      "ltd": 129.760587,
-      "name": "Пример 2",
-      "street": "Под Пример 1",
-      "img":
-          "https://lh5.googleusercontent.com/p/AF1QipOijOBA1kHiLFOhuExvsnk2FwC4R-iQGNFpY-Wy=w408-h544-k-no",
-      "desc": "Пример описания 2"
-    },
-    {
-      "lng": 62.0167415,
-      "ltd": 129.7045627,
-      "name": "Пример 3",
-      "street": "Под Пример 1",
-      "img":
-          "https://lh5.googleusercontent.com/p/AF1QipOijOBA1kHiLFOhuExvsnk2FwC4R-iQGNFpY-Wy=w408-h544-k-no",
-      "desc": "Пример описания 3"
-    },
-    {
-      "lng": 62.03485,
-      "ltd": 129.7420466,
-      "name": "Пример 4",
-      "street": "Под Пример 1",
-      "img":
-          "https://lh5.googleusercontent.com/p/AF1QipOijOBA1kHiLFOhuExvsnk2FwC4R-iQGNFpY-Wy=w408-h544-k-no",
-      "desc": "Пример описания 4"
-    },
-    {
-      "lng": 62.03478,
-      "ltd": 129.7420444,
-      "name": "Пример 5",
-      "street": "Под Пример 1",
-      "img":
-          "https://lh5.googleusercontent.com/p/AF1QipOijOBA1kHiLFOhuExvsnk2FwC4R-iQGNFpY-Wy=w408-h544-k-no",
-      "desc": "Пример описания 5"
-    }
-  ];
+  var markList = new MarkerList();
 
 //get my position
   void getGeo() async {
@@ -121,13 +76,14 @@ class _MapFrameState extends State<MapFrame> {
 
 //set list view from array
   void listBuilder() async {
-    for (int i = 0; i < markersList.length; i++) {
+    for (int i = 0; i < markList.markersList.length; i++) {
       listOfPlaces.add(GestureDetector(
         onTap: () => setState(() {
           myMapController.animateCamera(
             CameraUpdate.newCameraPosition(
               CameraPosition(
-                target: LatLng(markersList[i]["lng"], markersList[i]["ltd"]),
+                target: LatLng(markList.markersList[i]["lng"],
+                    markList.markersList[i]["ltd"]),
                 zoom: 12,
               ),
             ),
@@ -155,7 +111,7 @@ class _MapFrameState extends State<MapFrame> {
                 Column(
                   children: <Widget>[
                     Text(
-                      markersList[i]["name"],
+                      markList.markersList[i]["name"],
                       style:
                           TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
                     ),
@@ -163,7 +119,7 @@ class _MapFrameState extends State<MapFrame> {
                       height: 4,
                     ),
                     Text(
-                      markersList[i]["street"],
+                      markList.markersList[i]["street"],
                       style: TextStyle(fontSize: 13, color: Colors.grey[400]),
                     )
                   ],
@@ -183,8 +139,11 @@ class _MapFrameState extends State<MapFrame> {
     makeRouteButton0 = makeRouteButton1;
     makeRouteButtonCancel = makeRouteButton;
     setState(() {
-      dist = distanceBetwee(markersList[i]["lng"], markersList[i]["ltd"],
-          position.latitude, position.longitude);
+      dist = distanceBetwee(
+          markList.markersList[i]["lng"],
+          markList.markersList[i]["ltd"],
+          position.latitude,
+          position.longitude);
       if (dist < 1.0) {
         dist = dist * 1000;
         dist = dist.round();
@@ -217,7 +176,8 @@ class _MapFrameState extends State<MapFrame> {
                       shape: BoxShape.circle,
                       image: new DecorationImage(
                           fit: BoxFit.cover,
-                          image: new NetworkImage(markersList[i]["img"]))),
+                          image: new NetworkImage(
+                              markList.markersList[i]["img"]))),
                 ),
                 SizedBox(
                   width: 8,
@@ -230,7 +190,7 @@ class _MapFrameState extends State<MapFrame> {
                     Container(
                       padding: EdgeInsets.only(left: 10),
                       child: Text(
-                        markersList[i]["name"],
+                        markList.markersList[i]["name"],
                         style: TextStyle(
                             fontSize: 17, fontWeight: FontWeight.bold),
                       ),
@@ -242,7 +202,7 @@ class _MapFrameState extends State<MapFrame> {
                       padding: EdgeInsets.only(left: 10),
                       alignment: Alignment.centerLeft,
                       child: Text(
-                        markersList[i]["street"],
+                        markList.markersList[i]["street"],
                         style: TextStyle(fontSize: 15, color: Colors.grey),
                       ),
                     )
@@ -279,7 +239,7 @@ class _MapFrameState extends State<MapFrame> {
             padding: EdgeInsets.only(left: 15),
             alignment: Alignment.centerLeft,
             child: Text(
-              markersList[i]["desc"],
+              markList.markersList[i]["desc"],
               style: TextStyle(color: Colors.grey, fontSize: 13),
             ),
           )
@@ -349,49 +309,6 @@ class _MapFrameState extends State<MapFrame> {
           onPressed: () => setState(() {
                 makeRouteButton0 = makeRouteButtonCancel;
               })),
-    );
-
-    makeRouteButton2 = Container(
-      width: 380,
-      height: 60,
-      child: Row(
-        children: <Widget>[
-          Row(
-            children: <Widget>[
-              Icon(
-                Icons.directions_walk,
-                color: Colors.blue,
-              ),
-              Text(
-                'В пути',
-                style: TextStyle(color: Colors.blue),
-              )
-            ],
-          ),
-          SizedBox(
-            width: 20,
-          ),
-          RaisedButton(
-              color: Colors.white,
-              child: Row(
-                children: <Widget>[
-                  Icon(
-                    Icons.clear,
-                    color: Colors.blue,
-                  ),
-                  Text("Отменить маршрут",
-                      style: TextStyle(
-                        fontSize: 17,
-                        color: Colors.blue,
-                      ))
-                ],
-              ),
-              shape: RoundedRectangleBorder(
-                  borderRadius: new BorderRadius.circular(30.0),
-                  side: BorderSide(color: Colors.blue)),
-              onPressed: () => setState(() {})),
-        ],
-      ),
     );
 
 // Profile,Test, Media,Language buttons
@@ -606,7 +523,18 @@ class _MapFrameState extends State<MapFrame> {
       ),
       GestureDetector(
         onTap: () => setState(() {
-          listOfFloatButtons2 = listOfFloatButtons1;
+          showDialog(
+              context: context,
+              builder: (BuildContext context) {
+                return AlertDialog(
+                    content: Container(
+                  color: Colors.white.withOpacity(100),
+                  padding: EdgeInsets.only(left: 16),
+                  child: Column(
+                    children: listOfFloatButtons1,
+                  ),
+                ));
+              });
           panelContent = MyCabinet();
         }),
         child: CircleAvatar(
@@ -643,14 +571,18 @@ class _MapFrameState extends State<MapFrame> {
     panelContent = menuPanelContent;
 
     getCurrentLocation();
-    for (int i = 0; i < markersList.length; i++) {
+    for (int i = 0; i < markList.markersList.length; i++) {
       allMarkers.add(Marker(
         markerId: MarkerId(i.toString()),
         draggable: false,
-        position: LatLng(markersList[i]["lng"], markersList[i]["ltd"]),
+        position: LatLng(
+            markList.markersList[i]["lng"], markList.markersList[i]["ltd"]),
         onTap: () => setState(() {
-          dist = distanceBetwee(markersList[i]["lng"], markersList[i]["ltd"],
-              position.latitude, position.longitude);
+          dist = distanceBetwee(
+              markList.markersList[i]["lng"],
+              markList.markersList[i]["ltd"],
+              position.latitude,
+              position.longitude);
           if (dist < 1.0) {
             dist = dist * 1000;
             dist = dist.round();
@@ -667,7 +599,8 @@ class _MapFrameState extends State<MapFrame> {
         }),
       ));
     }
-    getSomePoints(markersList[i]["lng"], markersList[i]["ltd"]);
+    getSomePoints(
+        markList.markersList[i]["lng"], markList.markersList[i]["ltd"]);
     super.initState();
   }
 
