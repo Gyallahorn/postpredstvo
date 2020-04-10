@@ -9,7 +9,6 @@ import 'package:pospredsvto/cabinet/cabinet.dart';
 import 'package:pospredsvto/map/map_profile.dart';
 import 'package:pospredsvto/map/map_test.dart';
 import 'package:pospredsvto/map/sliderContent.dart';
-import 'package:pospredsvto/quiz/quiz.dart';
 import 'package:pospredsvto/quiz/select_quiz.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
 import 'dart:math';
@@ -17,13 +16,19 @@ import 'dart:math';
 import 'marker_list.dart';
 
 class MapFrame extends StatefulWidget {
+  final int level;
+
+  MapFrame({Key key, @required this.level}) : super(key: key);
+
   @override
-  _MapFrameState createState() => _MapFrameState();
+  _MapFrameState createState() => _MapFrameState(level);
 }
 
 List<Map<String, dynamic>> markers = [];
 
 class _MapFrameState extends State<MapFrame> {
+  int level;
+  _MapFrameState(this.level);
   var temp = new FloatingAnimButtons();
 
   int i = 0;
@@ -70,7 +75,8 @@ class _MapFrameState extends State<MapFrame> {
   double zoom = 12;
   Position csreenPos;
   PanelController panelController = new PanelController();
-  var markList = new MarkerList();
+  var markList;
+  LatLng startPoint;
 
 //get my position
   void getGeo() async {
@@ -88,7 +94,7 @@ class _MapFrameState extends State<MapFrame> {
               CameraPosition(
                 target: LatLng(markList.markersList[i]["lng"],
                     markList.markersList[i]["ltd"]),
-                zoom: 12,
+                zoom: 20,
               ),
             ),
           );
@@ -286,6 +292,18 @@ class _MapFrameState extends State<MapFrame> {
 
   @override
   void initState() {
+    if (widget.level == 1) {
+      startPoint = LatLng(55.7484972, 37.5365319);
+      markList = new MoskowMarkerList();
+    }
+    if (widget.level == 2) {
+      startPoint = LatLng(59.9281486, 30.3258252);
+      markList = new SPBMarkerList();
+    }
+    if (widget.level == 3) {
+      startPoint = LatLng(56.8433978, 35.7912839);
+      markList = new TverMarkerList();
+    }
     makeRouteButton1 = Container(
       width: 380,
       height: 60,
@@ -445,10 +463,15 @@ class _MapFrameState extends State<MapFrame> {
         height: 70,
       ),
       GestureDetector(
+        onTap: () {
+          setState(() {
+            listOfFloatButtons = listOfFloatButtons2;
+          });
+        },
         child: CircleAvatar(
           backgroundColor: Colors.white,
           child: Icon(
-            Icons.keyboard_arrow_up,
+            Icons.keyboard_arrow_down,
             color: Colors.blue,
           ),
         ),
@@ -539,7 +562,7 @@ class _MapFrameState extends State<MapFrame> {
           //         ),
           //       ));
           //     });
-          listOfFloatButtons2 = listOfFloatButtons1;
+          listOfFloatButtons = listOfFloatButtons1;
           panelContent = MyCabinet();
         }),
         child: CircleAvatar(
@@ -551,6 +574,8 @@ class _MapFrameState extends State<MapFrame> {
         ),
       )
     ];
+
+    listOfFloatButtons = listOfFloatButtons2;
 
     menuPanelContent = Material(
         child: Column(
@@ -652,12 +677,12 @@ class _MapFrameState extends State<MapFrame> {
           panel: panelContent,
           //MainScreen
           body: Scaffold(
-            floatingActionButton: Column(children: listOfFloatButtons2),
+            floatingActionButton: Column(children: listOfFloatButtons),
             body: GoogleMap(
               myLocationButtonEnabled: true,
               zoomGesturesEnabled: true,
               initialCameraPosition: CameraPosition(
-                target: LatLng(position.latitude, position.longitude),
+                target: startPoint,
                 zoom: zoom,
               ),
               markers: Set<Marker>.of(allMarkers),

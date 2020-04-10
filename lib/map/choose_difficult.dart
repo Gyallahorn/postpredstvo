@@ -15,7 +15,11 @@ class ChoosingDifficult extends StatelessWidget {
           GestureDetector(
             onTap: () {
               Navigator.push(
-                  context, MaterialPageRoute(builder: (context) => MapFrame()));
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => MapFrame(
+                            level: 1,
+                          )));
             },
             child: Center(
               child: Container(
@@ -34,6 +38,14 @@ class ChoosingDifficult extends StatelessWidget {
             height: 20,
           ),
           GestureDetector(
+            onTap: () {
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => MapFrame(
+                            level: 2,
+                          )));
+            },
             child: Container(
               width: 200,
               height: 50,
@@ -50,6 +62,14 @@ class ChoosingDifficult extends StatelessWidget {
             height: 20,
           ),
           GestureDetector(
+            onTap: () {
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => MapFrame(
+                            level: 1,
+                          )));
+            },
             child: Container(
               width: 200,
               height: 50,

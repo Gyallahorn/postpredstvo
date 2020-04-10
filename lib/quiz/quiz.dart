@@ -108,56 +108,61 @@ class _QuizState extends State<Quiz> {
     answersWidgets.clear();
     answersBuilder();
 
-    return Material(
-      child: Container(
-        child: Column(
-          children: <Widget>[
-            Container(
-              child: Text(
-                "${questionNumber + 1} из ${quiz.quiestions.length}",
-              ),
+    return SafeArea(
+      child: Scaffold(
+        appBar: AppBar(),
+        body: Material(
+          child: Container(
+            child: Column(
+              children: <Widget>[
+                Container(
+                  child: Text(
+                    "${questionNumber + 1} из ${quiz.quiestions.length}",
+                  ),
+                ),
+                SizedBox(
+                  height: 10,
+                ),
+                Container(
+                  padding: EdgeInsets.only(left: 15.0, right: 15),
+                  child: Text(
+                    quiz.quiestions[questionNumber],
+                    style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
+                  ),
+                ),
+                SizedBox(
+                  height: 33,
+                ),
+                Container(
+                  height: 292,
+                  padding: EdgeInsets.only(left: 15.0, right: 15),
+                  child: Column(
+                    children: answersWidgets,
+                  ),
+                ),
+                SizedBox(
+                  height: 90,
+                ),
+                Align(
+                  alignment: Alignment.bottomCenter,
+                  child: Container(
+                    width: 280,
+                    height: 44,
+                    child: RaisedButton(
+                        color: Colors.blue,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: new BorderRadius.circular(18.0),
+                        ),
+                        child: Text(
+                          "Далее",
+                          style: TextStyle(color: Colors.white),
+                        ),
+                        onPressed: () => UpdateQuestion()),
+                  ),
+                ),
+              ],
             ),
-            SizedBox(
-              height: 10,
-            ),
-            Container(
-              padding: EdgeInsets.only(left: 15.0, right: 15),
-              child: Text(
-                quiz.quiestions[questionNumber],
-                style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
-              ),
-            ),
-            SizedBox(
-              height: 33,
-            ),
-            Container(
-              height: 292,
-              padding: EdgeInsets.only(left: 15.0, right: 15),
-              child: Column(
-                children: answersWidgets,
-              ),
-            ),
-            SizedBox(
-              height: 90,
-            ),
-            Align(
-              alignment: Alignment.bottomCenter,
-              child: Container(
-                width: 280,
-                height: 44,
-                child: RaisedButton(
-                    color: Colors.blue,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: new BorderRadius.circular(18.0),
-                    ),
-                    child: Text(
-                      "Далее",
-                      style: TextStyle(color: Colors.white),
-                    ),
-                    onPressed: () => UpdateQuestion()),
-              ),
-            ),
-          ],
+          ),
         ),
       ),
     );
