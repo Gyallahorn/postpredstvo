@@ -8,7 +8,9 @@ import 'package:permission/permission.dart';
 import 'package:pospredsvto/cabinet/cabinet.dart';
 import 'package:pospredsvto/map/map_profile.dart';
 import 'package:pospredsvto/map/map_test.dart';
+import 'package:pospredsvto/map/sliderContent.dart';
 import 'package:pospredsvto/quiz/quiz.dart';
+import 'package:pospredsvto/quiz/select_quiz.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
 import 'dart:math';
 
@@ -22,6 +24,8 @@ class MapFrame extends StatefulWidget {
 List<Map<String, dynamic>> markers = [];
 
 class _MapFrameState extends State<MapFrame> {
+  var temp = new FloatingAnimButtons();
+
   int i = 0;
   var dist;
   bool listCalled = false;
@@ -354,7 +358,7 @@ class _MapFrameState extends State<MapFrame> {
         onTap: () => setState(() {
           testPressed = true;
           profilePressed = false;
-          panelContent = Quiz();
+          panelContent = SelectQuiz();
           panelController.open();
         }),
         child: Container(
@@ -523,18 +527,19 @@ class _MapFrameState extends State<MapFrame> {
       ),
       GestureDetector(
         onTap: () => setState(() {
-          showDialog(
-              context: context,
-              builder: (BuildContext context) {
-                return AlertDialog(
-                    content: Container(
-                  color: Colors.white.withOpacity(100),
-                  padding: EdgeInsets.only(left: 16),
-                  child: Column(
-                    children: listOfFloatButtons1,
-                  ),
-                ));
-              });
+          // showDialog(
+          //     context: context,
+          //     builder: (BuildContext context) {
+          //       return AlertDialog(
+          //           content: Container(
+          //         color: Colors.white.withOpacity(100),
+          //         padding: EdgeInsets.only(left: 16),
+          //         child: Column(
+          //           children: listOfFloatButtons1,
+          //         ),
+          //       ));
+          //     });
+          listOfFloatButtons2 = listOfFloatButtons1;
           panelContent = MyCabinet();
         }),
         child: CircleAvatar(

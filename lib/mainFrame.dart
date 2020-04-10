@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:pospredsvto/main/home_bottom_nav_bar.dart';
-import 'package:pospredsvto/main/tab_navigation.dart';
 import 'package:pospredsvto/map/map.dart';
+
+import 'map/choose_difficult.dart';
 
 class MainFrame extends StatefulWidget {
   @override
@@ -21,11 +21,7 @@ class _MainFrameState extends State<MainFrame> {
     return MaterialApp(
       home: Scaffold(
         appBar: AppBar(),
-        body: NavigationTab().widgetList[_currentIndex],
-        bottomNavigationBar: HomeBottomNavBar(
-          onTabTapped: onTabTapped,
-          currentIndex: _currentIndex,
-        ),
+        body: ChoosingDifficult(),
       ),
     );
   }

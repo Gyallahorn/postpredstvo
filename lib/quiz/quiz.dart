@@ -27,6 +27,7 @@ class _QuizState extends State<Quiz> {
     for (int i = 0; i < quiz.choices[questionNumber].length; i++) {
       answersWidgets.add(GestureDetector(
         onTap: () => setState(() {
+          group = i + 1;
           isTapped = true;
           color = Colors.blue;
           choosedAnswer = quiz.choices[questionNumber][i];
@@ -44,6 +45,7 @@ class _QuizState extends State<Quiz> {
                     onChanged: (T) {
                       print(i);
                       setState(() {
+                        print(T);
                         group = T;
                       });
                     },

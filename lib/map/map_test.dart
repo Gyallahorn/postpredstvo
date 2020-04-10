@@ -8,6 +8,7 @@ import 'package:permission/permission.dart';
 import 'package:pospredsvto/cabinet/cabinet.dart';
 import 'package:pospredsvto/map/sliderContent.dart';
 import 'package:pospredsvto/quiz/quiz.dart';
+import 'package:pospredsvto/quiz/select_quiz.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
 import 'dart:math';
 
@@ -252,7 +253,7 @@ class _MapTestFrameState extends State<MapTestFrame> {
         minHeight: 20,
         maxHeight: 500,
         //Panel
-        panel: Quiz(),
+        panel: SelectQuiz(),
         //MainScreen
         body: Scaffold(
           floatingActionButton: Column(

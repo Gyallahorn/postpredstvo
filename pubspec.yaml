@@ -27,6 +27,7 @@ dependencies:
   provider: ^4.0.4
   shared_preferences: ^0.5.6+3
   sliding_up_panel: ^1.0.0
+  flutter_speed_dial: ^1.2.5
   permission:
 
   
