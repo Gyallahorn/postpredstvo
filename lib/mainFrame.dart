@@ -21,7 +21,7 @@ class _MainFrameState extends State<MainFrame> {
     return MaterialApp(
       home: Scaffold(
         appBar: AppBar(),
-        body: ChoosingDifficult(),
+        body: MainMap(),
       ),
     );
   }

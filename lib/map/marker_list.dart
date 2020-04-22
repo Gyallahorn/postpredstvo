@@ -1,7 +1,7 @@
 class MarkerList {
   List<Map<String, dynamic>> markersList = [
     {
-      "lng": 62.03484,
+      "lng": 62.0442488,
       "ltd": 129.7420426,
       "name": "Пример 1",
       "street": "Под Пример 1",
@@ -44,15 +44,10 @@ class MarkerList {
       "img":
           "https://lh5.googleusercontent.com/p/AF1QipOijOBA1kHiLFOhuExvsnk2FwC4R-iQGNFpY-Wy=w408-h544-k-no",
       "desc": "Пример описания 5"
-    }
-  ];
-}
-
-class MoskowMarkerList {
-  List<Map<String, dynamic>> markersList = [
+    },
     {
-      "lng": 55.747448,
-      "ltd": 37.611551,
+      "lng": 62.0442488,
+      "ltd": 129.7272194,
       "name": "Пример 1",
       "street": "Под Пример 1",
       "img":
@@ -94,12 +89,7 @@ class MoskowMarkerList {
       "img":
           "https://lh5.googleusercontent.com/p/AF1QipOijOBA1kHiLFOhuExvsnk2FwC4R-iQGNFpY-Wy=w408-h544-k-no",
       "desc": "Пример описания 5"
-    }
-  ];
-}
-
-class SPBMarkerList {
-  List<Map<String, dynamic>> markersList = [
+    },
     {
       "lng": 59.9318298,
       "ltd": 30.3382323,
@@ -127,11 +117,6 @@ class SPBMarkerList {
           "https://lh5.googleusercontent.com/p/AF1QipOijOBA1kHiLFOhuExvsnk2FwC4R-iQGNFpY-Wy=w408-h544-k-no",
       "desc": "Пример описания 3"
     },
-  ];
-}
-
-class TverMarkerList {
-  List<Map<String, dynamic>> markersList = [
     {
       "lng": 56.8507218,
       "ltd": 35.9152418,

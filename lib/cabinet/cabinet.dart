@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pospredsvto/map/marker_list.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 String testScore = " ";
@@ -13,38 +14,8 @@ class MyCabinet extends StatelessWidget {
       return scoreValue;
     }
 
-    List<Map<String, dynamic>> markersList = [
-      {
-        "lng": 62.03484,
-        "ltd": 129.7420426,
-        "name": "Пример 1",
-        "street": "Под Пример 1"
-      },
-      {
-        "lng": 62.0311268,
-        "ltd": 129.760587,
-        "name": "Пример 2",
-        "street": "Под Пример 1"
-      },
-      {
-        "lng": 62.0167415,
-        "ltd": 129.7045627,
-        "name": "Пример 3",
-        "street": "Под Пример 1"
-      },
-      {
-        "lng": 62.03485,
-        "ltd": 129.7420466,
-        "name": "Пример 4",
-        "street": "Под Пример 1"
-      },
-      {
-        "lng": 62.03478,
-        "ltd": 129.7420444,
-        "name": "Пример 5",
-        "street": "Под Пример 1"
-      }
-    ];
+    var markerList = MarkerList();
+    var markersList = markerList.markersList;
     var listOfPlaces = List<Widget>();
 
     void listBuilder() async {

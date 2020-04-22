@@ -1,14 +1,8 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_map_polyline/google_map_polyline.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:permission/permission.dart';
 import 'package:pospredsvto/cabinet/cabinet.dart';
-import 'package:pospredsvto/map/map_profile.dart';
-import 'package:pospredsvto/map/map_test.dart';
-import 'package:pospredsvto/map/sliderContent.dart';
 import 'package:pospredsvto/quiz/select_quiz.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
 import 'dart:math';
@@ -16,21 +10,17 @@ import 'dart:math';
 import 'marker_list.dart';
 
 class MapFrame extends StatefulWidget {
-  final int level;
-
-  MapFrame({Key key, @required this.level}) : super(key: key);
-
   @override
-  _MapFrameState createState() => _MapFrameState(level);
+  _MapFrameState createState() => _MapFrameState();
 }
 
+String googleApiKey = 'AIzaSyD1jTuV-6U9jr8R9K91sgibrZ4ETpT09UQ';
 List<Map<String, dynamic>> markers = [];
 
-class _MapFrameState extends State<MapFrame> {
-  int level;
-  _MapFrameState(this.level);
-  var temp = new FloatingAnimButtons();
+GoogleMapPolyline googleMapPolyline =
+    new GoogleMapPolyline(apiKey: "AIzaSyD1jTuV-6U9jr8R9K91sgibrZ4ETpT09UQ");
 
+class _MapFrameState extends State<MapFrame> {
   int i = 0;
   var dist;
   bool listCalled = false;
@@ -40,14 +30,17 @@ class _MapFrameState extends State<MapFrame> {
   var panelContent;
   var menuPanelContent;
   var distance = "выберите маркер";
+
+  int _polylineCount = 1;
   List<Marker> allMarkers = [];
   List<Marker> _markers = [];
-  Completer<GoogleMapController> _controller = Completer();
+  Map<PolylineId, Polyline> _polylines = <PolylineId, Polyline>{};
+  List<LatLng> routingCoords = [];
+
+  GoogleMapController _controller;
   // Routing vars
   final Set<Polyline> polyline = {};
   List<LatLng> routeCoords;
-  GoogleMapPolyline googleMapPolyline =
-      new GoogleMapPolyline(apiKey: "AIzaSyD1jTuV-6U9jr8R9K91sgibrZ4ETpT09UQ");
 
   List<BoxShadow> boxShad = const <BoxShadow>[
     BoxShadow(color: Colors.black, blurRadius: 8.0)
@@ -55,7 +48,7 @@ class _MapFrameState extends State<MapFrame> {
 
   BorderRadiusGeometry radius = BorderRadius.only(
       topLeft: Radius.circular(20.0), topRight: Radius.circular(20.0));
-
+  var pressed = 0;
   var listOfPlaces = List<Widget>();
   var listOfFloatButtons2 = List<Widget>();
   var listOfFloatButtons1 = List<Widget>();
@@ -65,6 +58,7 @@ class _MapFrameState extends State<MapFrame> {
   var makeRouteButton2;
   var makeRouteButton1;
   var makeRoutePanel;
+  var markerAbout;
 
   //Map
   GoogleMapController myMapController;
@@ -84,6 +78,32 @@ class _MapFrameState extends State<MapFrame> {
         .getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
   }
 
+  getSomePoints(double lng, double ltd) async {
+    print("getSomePoints called");
+    List<LatLng> _coordinates =
+        await googleMapPolyline.getCoordinatesWithLocation(
+            origin: LatLng(position.latitude, position.longitude),
+            destination: LatLng(lng, ltd),
+            mode: RouteMode.walking);
+    setState(() {
+      _polylines.clear();
+      _addPolyline(_coordinates);
+    });
+  }
+
+  _addPolyline(List<LatLng> _coordinates) {
+    PolylineId id = PolylineId("poly$_polylineCount");
+    Polyline polyline = Polyline(
+        polylineId: id,
+        color: Colors.blueAccent,
+        points: _coordinates,
+        width: 10);
+    setState(() {
+      _polylines[id] = polyline;
+      _polylineCount++;
+    });
+  }
+
 //set list view from array
   void listBuilder() async {
     for (int i = 0; i < markList.markersList.length; i++) {
@@ -94,11 +114,13 @@ class _MapFrameState extends State<MapFrame> {
               CameraPosition(
                 target: LatLng(markList.markersList[i]["lng"],
                     markList.markersList[i]["ltd"]),
-                zoom: 20,
+                zoom: 15,
               ),
             ),
           );
-          routeBuilder(i, makeRouteButton2, makeRouteButton1);
+          markerAboutBuilder(i);
+          print("builded");
+          panelContent = markerAbout;
         }),
         child: Column(
           children: <Widget>[
@@ -145,24 +167,37 @@ class _MapFrameState extends State<MapFrame> {
     }
   }
 
-  void routeBuilder(int i, makeRouteButton, makeRouteButton1) {
-    makeRouteButton0 = makeRouteButton1;
-    makeRouteButtonCancel = makeRouteButton;
+  // void routeBuilder(int i, makeRouteButton, makeRouteButton1) {
+  //   setState(() {
+  //     print("routeBuilder called");
+  //     dist = distanceBetwee(
+  //         markList.markersList[i]["lng"],
+  //         markList.markersList[i]["ltd"],
+  //         position.latitude,
+  //         position.longitude);
+  //     if (dist < 1.0) {
+  //       dist = dist * 1000;
+  //       dist = dist.round();
+  //       distance = dist.toString() + " м";
+  //     } else {
+  //       dist = dist.round();
+  //       distance = dist.toString() + " Км";
+  //     }
+  //   });
+  // }
+
+  double distanceBetwee(lat1, lon1, lat2, lon2) {
+    var pi = 0.017453292519943295;
+    var a = 0.5 -
+        cos((lat2 - lat1) * pi) / 2 +
+        cos(lat1 * pi) * cos(lat2 * pi) * (1 - cos((lon2 - lon1) * pi)) / 2;
+    return 12742 * asin(sqrt(a));
+  }
+
+  markerAboutBuilder(int i) {
     setState(() {
-      dist = distanceBetwee(
-          markList.markersList[i]["lng"],
-          markList.markersList[i]["ltd"],
-          position.latitude,
-          position.longitude);
-      if (dist < 1.0) {
-        dist = dist * 1000;
-        dist = dist.round();
-        distance = dist.toString() + " м";
-      } else {
-        dist = dist.round();
-        distance = dist.toString() + " Км";
-      }
-      panelContent = Column(
+      print("markerAboutBuilder called");
+      markerAbout = Column(
         children: <Widget>[
           Container(
             width: 50,
@@ -258,380 +293,397 @@ class _MapFrameState extends State<MapFrame> {
     });
   }
 
-  getSomePoints(double lng, double ltd) async {
-    var permissions =
-        await Permission.getPermissionsStatus([PermissionName.Location]);
-    if (permissions[0].permissionStatus == PermissionStatus.notAgain) {
-      var askpermission =
-          await Permission.requestPermissions([PermissionName.Location]);
-    } else {
-      routeCoords = await googleMapPolyline.getCoordinatesWithLocation(
-          origin: LatLng(position.latitude, position.longitude),
-          destination: LatLng(lng, ltd),
-          mode: RouteMode.walking);
-    }
-  }
-
-  void setMapPins(double lat, double lng) {
+  makeRouteButton1Builder(int i) {
     setState(() {
-      _markers.add(Marker(
-          markerId: MarkerId("dest"),
-          position: LatLng(position.latitude, position.longitude)));
-      _markers
-          .add(Marker(markerId: MarkerId("dest"), position: LatLng(lat, lng)));
+      makeRouteButton0 = Container(
+        width: 380,
+        height: 60,
+        child: RaisedButton(
+            color: Colors.white,
+            child: Row(
+              children: <Widget>[
+                SizedBox(
+                  width: 70,
+                ),
+                Icon(
+                  Icons.directions_walk,
+                  color: Colors.blue,
+                ),
+                Text("Проложить маршрут",
+                    style: TextStyle(
+                      fontSize: 17,
+                      color: Colors.blue,
+                    ))
+              ],
+            ),
+            shape: RoundedRectangleBorder(
+                borderRadius: new BorderRadius.circular(30.0),
+                side: BorderSide(color: Colors.blue)),
+            onPressed: () => setState(() {
+                  if (pressed == 0) {
+                    pressed++;
+                  }
+                  if (pressed != 0) {
+                    _polylines.clear();
+                    pressed--;
+                  }
+                  getSomePoints(markList.markersList[i]["lng"],
+                      markList.markersList[i]["ltd"]);
+                })),
+      );
     });
   }
 
-  double distanceBetwee(lat1, lon1, lat2, lon2) {
-    var pi = 0.017453292519943295;
-    var a = 0.5 -
-        cos((lat2 - lat1) * pi) / 2 +
-        cos(lat1 * pi) * cos(lat2 * pi) * (1 - cos((lon2 - lon1) * pi)) / 2;
-    return 12742 * asin(sqrt(a));
+  makeRouteCancelButtonBuilder(int i) {
+    setState(() {
+      print('called makeCancel');
+      makeRouteButton0 = Container(
+        width: 380,
+        height: 60,
+        child: Row(
+          children: <Widget>[
+            Icon(
+              Icons.directions_walk,
+              color: Colors.blue,
+            ),
+            SizedBox(
+              width: 10,
+            ),
+            Text(
+              'В пути',
+              style: TextStyle(fontSize: 15, color: Colors.blue),
+            ),
+            RaisedButton(
+                color: Colors.white,
+                child: Row(
+                  children: <Widget>[
+                    SizedBox(
+                      width: 10,
+                    ),
+                    Icon(
+                      Icons.clear,
+                      color: Colors.blue,
+                    ),
+                    SizedBox(
+                      width: 10,
+                    ),
+                    Text("Отменить маршрут",
+                        style: TextStyle(
+                          fontSize: 17,
+                          color: Colors.blue,
+                        ))
+                  ],
+                ),
+                shape: RoundedRectangleBorder(
+                    borderRadius: new BorderRadius.circular(30.0),
+                    side: BorderSide(color: Colors.blue)),
+                onPressed: () => setState(() {
+                      _polylines.clear();
+                      makeRouteButton1Builder(i);
+                    })),
+          ],
+        ),
+      );
+      initState();
+      panelContent = markerAbout;
+    });
   }
 
-  @override
-  void initState() {
-    if (widget.level == 1) {
-      startPoint = LatLng(55.7484972, 37.5365319);
-      markList = new MoskowMarkerList();
-    }
-    if (widget.level == 2) {
-      startPoint = LatLng(59.9281486, 30.3258252);
-      markList = new SPBMarkerList();
-    }
-    if (widget.level == 3) {
-      startPoint = LatLng(56.8433978, 35.7912839);
-      markList = new TverMarkerList();
-    }
-    makeRouteButton1 = Container(
-      width: 380,
-      height: 60,
-      child: RaisedButton(
-          color: Colors.white,
-          child: Row(
-            children: <Widget>[
-              SizedBox(
-                width: 70,
-              ),
-              Icon(
-                Icons.directions_walk,
-                color: Colors.blue,
-              ),
-              Text("Проложить маршрут",
-                  style: TextStyle(
-                    fontSize: 17,
-                    color: Colors.blue,
-                  ))
-            ],
-          ),
-          shape: RoundedRectangleBorder(
-              borderRadius: new BorderRadius.circular(30.0),
-              side: BorderSide(color: Colors.blue)),
-          onPressed: () => setState(() {
-                makeRouteButton0 = makeRouteButtonCancel;
-              })),
-    );
+  setMapButtons() {
+    setState(() {
+      // map buttons
+      listOfFloatButtons2 = <Widget>[
+        SizedBox(
+          height: 200,
+        ),
 
-// Profile,Test, Media,Language buttons
-    listOfFloatButtons1 = <Widget>[
-      SizedBox(
-        height: 127,
-      ),
-      GestureDetector(
-        onTap: () => setState(() {
-          profilePressed = true;
-          testPressed = false;
-          panelContent = MyCabinet();
-          panelController.open();
-        }),
-        child: Container(
-          color: Colors.transparent,
-          height: 80,
-          width: 80,
-          child: new Container(
-            child: Column(
-              children: <Widget>[
-                SizedBox(
-                  height: 10,
-                ),
-                Icon(
-                  Icons.account_circle,
-                  size: 30,
-                  color: Colors.blue,
-                ),
-                Text('Профиль')
-              ],
+        GestureDetector(
+          onTap: () => setState(() {
+            panelContent = menuPanelContent;
+            panelController.open();
+          }),
+          child: CircleAvatar(
+            backgroundColor: Colors.white,
+            child: Icon(
+              Icons.menu,
+              color: Colors.blue,
             ),
-            decoration: new BoxDecoration(
-                color: Colors.white,
-                borderRadius: new BorderRadius.all(Radius.circular(12))),
-          ),
-        ),
-      ),
-      SizedBox(
-        height: 20,
-      ),
-      GestureDetector(
-        onTap: () => setState(() {
-          testPressed = true;
-          profilePressed = false;
-          panelContent = SelectQuiz();
-          panelController.open();
-        }),
-        child: Container(
-          color: Colors.transparent,
-          height: 80,
-          width: 80,
-          child: new Container(
-            child: Column(
-              children: <Widget>[
-                SizedBox(
-                  height: 10,
-                ),
-                Icon(
-                  Icons.toc,
-                  size: 30,
-                  color: Colors.blue,
-                ),
-                Text('Тесты')
-              ],
-            ),
-            decoration: new BoxDecoration(
-                color: Colors.white,
-                borderRadius: new BorderRadius.all(Radius.circular(12))),
-          ),
-        ),
-      ),
-      SizedBox(
-        height: 20,
-      ),
-      GestureDetector(
-        child: Container(
-          color: Colors.transparent,
-          height: 80,
-          width: 80,
-          child: new Container(
-            child: Column(
-              children: <Widget>[
-                SizedBox(
-                  height: 10,
-                ),
-                Icon(
-                  Icons.photo_library,
-                  size: 30,
-                  color: Colors.blue,
-                ),
-                Text('Медиа')
-              ],
-            ),
-            decoration: new BoxDecoration(
-                color: Colors.white,
-                borderRadius: new BorderRadius.all(Radius.circular(12))),
-          ),
-        ),
-      ),
-      SizedBox(
-        height: 20,
-      ), //find me
-      GestureDetector(
-        child: Container(
-          color: Colors.transparent,
-          height: 80,
-          width: 80,
-          child: new Container(
-            child: Column(
-              children: <Widget>[
-                SizedBox(
-                  height: 10,
-                ),
-                Icon(
-                  Icons.language,
-                  size: 30,
-                  color: Colors.blue,
-                ),
-                Text('Язык')
-              ],
-            ),
-            decoration: new BoxDecoration(
-                color: Colors.white,
-                borderRadius: new BorderRadius.all(Radius.circular(12))),
-          ),
-        ),
-      ),
-      SizedBox(
-        height: 70,
-      ),
-      GestureDetector(
-        onTap: () {
-          setState(() {
-            listOfFloatButtons = listOfFloatButtons2;
-          });
-        },
-        child: CircleAvatar(
-          backgroundColor: Colors.white,
-          child: Icon(
-            Icons.keyboard_arrow_down,
-            color: Colors.blue,
-          ),
-        ),
-      )
-    ];
-
-// map buttons
-    listOfFloatButtons2 = <Widget>[
-      SizedBox(
-        height: 200,
-      ),
-
-      GestureDetector(
-        onTap: () => setState(() {
-          panelContent = menuPanelContent;
-          panelController.open();
-        }),
-        child: CircleAvatar(
-          backgroundColor: Colors.white,
-          child: Icon(
-            Icons.menu,
-            color: Colors.blue,
-          ),
-        ),
-      ),
-      SizedBox(
-        height: 20,
-      ),
-      GestureDetector(
-        onTap: () => {myMapController.animateCamera(CameraUpdate.zoomIn())},
-        child: CircleAvatar(
-          backgroundColor: Colors.white,
-          child: Icon(
-            Icons.add,
-            color: Colors.blue,
-          ),
-        ),
-      ),
-      SizedBox(
-        height: 20,
-      ),
-      GestureDetector(
-        onTap: () => {myMapController.animateCamera(CameraUpdate.zoomOut())},
-        child: CircleAvatar(
-          backgroundColor: Colors.white,
-          child: Icon(
-            Icons.remove,
-            color: Colors.blue,
-          ),
-        ),
-      ),
-      SizedBox(
-        height: 20,
-      ), //find me
-      GestureDetector(
-        onTap: () => setState(() {
-          myMapController.animateCamera(
-            CameraUpdate.newCameraPosition(
-              CameraPosition(
-                target: LatLng(position.latitude, position.longitude),
-                zoom: 12,
-              ),
-            ),
-          );
-        }),
-        child: CircleAvatar(
-          backgroundColor: Colors.white,
-          child: Icon(
-            Icons.near_me,
-            color: Colors.blue,
-          ),
-        ),
-      ),
-      SizedBox(
-        height: 70,
-      ),
-      GestureDetector(
-        onTap: () => setState(() {
-          // showDialog(
-          //     context: context,
-          //     builder: (BuildContext context) {
-          //       return AlertDialog(
-          //           content: Container(
-          //         color: Colors.white.withOpacity(100),
-          //         padding: EdgeInsets.only(left: 16),
-          //         child: Column(
-          //           children: listOfFloatButtons1,
-          //         ),
-          //       ));
-          //     });
-          listOfFloatButtons = listOfFloatButtons1;
-          panelContent = MyCabinet();
-        }),
-        child: CircleAvatar(
-          backgroundColor: Colors.white,
-          child: Icon(
-            Icons.keyboard_arrow_up,
-            color: Colors.blue,
-          ),
-        ),
-      )
-    ];
-
-    listOfFloatButtons = listOfFloatButtons2;
-
-    menuPanelContent = Material(
-        child: Column(
-      children: <Widget>[
-        Container(
-          width: 50,
-          child: Divider(
-            thickness: 5,
-            color: Colors.grey,
           ),
         ),
         SizedBox(
-          height: 17,
+          height: 20,
         ),
-        Expanded(
-          child: ListView(
-            children: listOfPlaces,
+        GestureDetector(
+          onTap: () => {myMapController.animateCamera(CameraUpdate.zoomIn())},
+          child: CircleAvatar(
+            backgroundColor: Colors.white,
+            child: Icon(
+              Icons.add,
+              color: Colors.blue,
+            ),
+          ),
+        ),
+        SizedBox(
+          height: 20,
+        ),
+        GestureDetector(
+          onTap: () => {myMapController.animateCamera(CameraUpdate.zoomOut())},
+          child: CircleAvatar(
+            backgroundColor: Colors.white,
+            child: Icon(
+              Icons.remove,
+              color: Colors.blue,
+            ),
+          ),
+        ),
+        SizedBox(
+          height: 20,
+        ), //find me
+        GestureDetector(
+          onTap: () => setState(() {
+            myMapController.animateCamera(
+              CameraUpdate.newCameraPosition(
+                CameraPosition(
+                  target: LatLng(position.latitude, position.longitude),
+                  zoom: 12,
+                ),
+              ),
+            );
+          }),
+          child: CircleAvatar(
+            backgroundColor: Colors.white,
+            child: Icon(
+              Icons.near_me,
+              color: Colors.blue,
+            ),
+          ),
+        ),
+        SizedBox(
+          height: 70,
+        ),
+        GestureDetector(
+          onTap: () => setState(() {
+            listOfFloatButtons = listOfFloatButtons1;
+            panelContent = MyCabinet();
+          }),
+          child: CircleAvatar(
+            backgroundColor: Colors.white,
+            child: Icon(
+              Icons.keyboard_arrow_up,
+              color: Colors.blue,
+            ),
           ),
         )
-      ],
-    ));
+      ];
+    });
+  }
 
-    panelContent = menuPanelContent;
+  setFloatingButtons() {
+    setState(() {
+      // Profile,Test, Media,Language buttons
+      listOfFloatButtons1 = <Widget>[
+        SizedBox(
+          height: 127,
+        ),
+        GestureDetector(
+          onTap: () => setState(() {
+            profilePressed = true;
+            testPressed = false;
+            panelContent = MyCabinet();
+            panelController.open();
+          }),
+          child: Container(
+            color: Colors.transparent,
+            height: 80,
+            width: 80,
+            child: new Container(
+              child: Column(
+                children: <Widget>[
+                  SizedBox(
+                    height: 10,
+                  ),
+                  Icon(
+                    Icons.account_circle,
+                    size: 30,
+                    color: Colors.blue,
+                  ),
+                  Text('Профиль')
+                ],
+              ),
+              decoration: new BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: new BorderRadius.all(Radius.circular(12))),
+            ),
+          ),
+        ),
+        SizedBox(
+          height: 20,
+        ),
+        GestureDetector(
+          onTap: () => setState(() {
+            testPressed = true;
+            profilePressed = false;
+            panelContent = SelectQuiz();
+            panelController.open();
+          }),
+          child: Container(
+            color: Colors.transparent,
+            height: 80,
+            width: 80,
+            child: new Container(
+              child: Column(
+                children: <Widget>[
+                  SizedBox(
+                    height: 10,
+                  ),
+                  Icon(
+                    Icons.toc,
+                    size: 30,
+                    color: Colors.blue,
+                  ),
+                  Text('Тесты')
+                ],
+              ),
+              decoration: new BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: new BorderRadius.all(Radius.circular(12))),
+            ),
+          ),
+        ),
+        SizedBox(
+          height: 20,
+        ),
+        GestureDetector(
+          child: Container(
+            color: Colors.transparent,
+            height: 80,
+            width: 80,
+            child: new Container(
+              child: Column(
+                children: <Widget>[
+                  SizedBox(
+                    height: 10,
+                  ),
+                  Icon(
+                    Icons.photo_library,
+                    size: 30,
+                    color: Colors.blue,
+                  ),
+                  Text('Медиа')
+                ],
+              ),
+              decoration: new BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: new BorderRadius.all(Radius.circular(12))),
+            ),
+          ),
+        ),
+        SizedBox(
+          height: 20,
+        ), //find me
+        GestureDetector(
+          child: Container(
+            color: Colors.transparent,
+            height: 80,
+            width: 80,
+            child: new Container(
+              child: Column(
+                children: <Widget>[
+                  SizedBox(
+                    height: 10,
+                  ),
+                  Icon(
+                    Icons.language,
+                    size: 30,
+                    color: Colors.blue,
+                  ),
+                  Text('Язык')
+                ],
+              ),
+              decoration: new BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: new BorderRadius.all(Radius.circular(12))),
+            ),
+          ),
+        ),
+        SizedBox(
+          height: 70,
+        ),
+        GestureDetector(
+          onTap: () {
+            setState(() {
+              listOfFloatButtons = listOfFloatButtons2;
+            });
+          },
+          child: CircleAvatar(
+            backgroundColor: Colors.white,
+            child: Icon(
+              Icons.keyboard_arrow_down,
+              color: Colors.blue,
+            ),
+          ),
+        )
+      ];
+    });
+  }
 
-    getCurrentLocation();
-    for (int i = 0; i < markList.markersList.length; i++) {
-      allMarkers.add(Marker(
-        markerId: MarkerId(i.toString()),
-        draggable: false,
-        position: LatLng(
-            markList.markersList[i]["lng"], markList.markersList[i]["ltd"]),
-        onTap: () => setState(() {
-          dist = distanceBetwee(
-              markList.markersList[i]["lng"],
-              markList.markersList[i]["ltd"],
-              position.latitude,
-              position.longitude);
-          if (dist < 1.0) {
-            dist = dist * 1000;
-            dist = dist.round();
-            distance = dist.toString() + " м";
-          } else {
-            dist = dist.round();
-            distance = dist.toString() + " Км";
-          }
-          print(distance);
-          print("marker " + i.toString() + " tapped");
-
-          routeBuilder(i, makeRouteButton2, makeRouteButton1);
-          panelController.open();
-        }),
+  setMenuPanelContent() {
+    setState(() {
+      menuPanelContent = Material(
+          child: Column(
+        children: <Widget>[
+          Container(
+            width: 50,
+            child: Divider(
+              thickness: 5,
+              color: Colors.grey,
+            ),
+          ),
+          SizedBox(
+            height: 17,
+          ),
+          Expanded(
+            child: ListView(
+              children: listOfPlaces,
+            ),
+          )
+        ],
       ));
-    }
-    getSomePoints(
-        markList.markersList[i]["lng"], markList.markersList[i]["ltd"]);
-    super.initState();
+    });
+  }
+
+  addMarkers() {
+    setState(() {
+      for (int i = 0; i < markList.markersList.length; i++) {
+        allMarkers.add(Marker(
+          markerId: MarkerId(i.toString()),
+          draggable: false,
+          position: LatLng(
+              markList.markersList[i]["lng"], markList.markersList[i]["ltd"]),
+          onTap: () => setState(() {
+            makeRouteButton1Builder(i);
+            //calc distance
+            dist = distanceBetwee(
+                markList.markersList[i]["lng"],
+                markList.markersList[i]["ltd"],
+                position.latitude,
+                position.longitude);
+            if (dist < 1.0) {
+              dist = dist * 1000;
+              dist = dist.round();
+              distance = dist.toString() + " м";
+            } else {
+              dist = dist.round();
+              distance = dist.toString() + " Км";
+            }
+            // routeBuilder(i, makeRouteButton2, makeRouteButton1);
+            markerAboutBuilder(i);
+            panelContent = markerAbout;
+            panelController.open();
+          }),
+        ));
+      }
+    });
   }
 
   void getCurrentLocation() async {
@@ -641,20 +693,27 @@ class _MapFrameState extends State<MapFrame> {
     });
   }
 
+  @override
+  void initState() {
+    getGeo();
+    getCurrentLocation();
+
+    markList = new MarkerList();
+    setMapButtons();
+    setFloatingButtons();
+    setMenuPanelContent();
+    listOfFloatButtons = listOfFloatButtons2;
+    panelContent = menuPanelContent;
+    addMarkers();
+    super.initState();
+  }
+
   Widget build(BuildContext context) {
     getGeo();
 
     void onMapCreated(GoogleMapController controller) async {
       setState(() {
         myMapController = controller;
-        polyline.add(Polyline(
-            polylineId: PolylineId('route1'),
-            visible: true,
-            points: routeCoords,
-            width: 4,
-            color: Colors.blue,
-            startCap: Cap.roundCap,
-            endCap: Cap.buttCap));
       });
     }
 
@@ -665,6 +724,9 @@ class _MapFrameState extends State<MapFrame> {
       print('listAlredyCalled');
     }
     if (!menuPressed) {
+      getCurrentLocation();
+      startPoint = LatLng(position.latitude, position.longitude);
+
       return Material(
         child: Scaffold(
             body: SlidingUpPanel(
@@ -686,20 +748,13 @@ class _MapFrameState extends State<MapFrame> {
                 zoom: zoom,
               ),
               markers: Set<Marker>.of(allMarkers),
+              polylines: Set<Polyline>.of(_polylines.values),
               mapType: MapType.normal,
               onMapCreated: onMapCreated,
             ),
           ),
         )),
       );
-    }
-//
-    if (profilePressed) {
-      return MapProfileFrame();
-    }
-//
-    if (testPressed) {
-      return MapTestFrame();
     }
   }
 }
