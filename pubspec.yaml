@@ -29,6 +29,7 @@ dependencies:
   sliding_up_panel: ^1.0.0
   flutter_speed_dial: ^1.2.5
   flutter_polyline_points: ^0.1.0
+  auto_size_text: ^2.1.0
   permission:
 
   

@@ -1,3 +1,4 @@
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_map_polyline/google_map_polyline.dart';
@@ -142,17 +143,24 @@ class _MapFrameState extends State<MapFrame> {
                 ),
                 Column(
                   children: <Widget>[
-                    Text(
-                      markList.markersList[i]["name"],
-                      style:
-                          TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                    Container(
+                      width: 300,
+                      child: AutoSizeText(
+                        markList.markersList[i]["name"],
+                        style: TextStyle(
+                            fontSize: 15, fontWeight: FontWeight.bold),
+                      ),
                     ),
                     SizedBox(
                       height: 4,
                     ),
-                    Text(
-                      markList.markersList[i]["street"],
-                      style: TextStyle(fontSize: 13, color: Colors.grey[400]),
+                    Container(
+                      width: 300,
+                      child: AutoSizeText(
+                        markList.markersList[i]["street"],
+                        maxLines: 2,
+                        style: TextStyle(fontSize: 13, color: Colors.grey[400]),
+                      ),
                     )
                   ],
                 )
@@ -233,9 +241,11 @@ class _MapFrameState extends State<MapFrame> {
                       height: 8,
                     ),
                     Container(
+                      width: 300,
                       padding: EdgeInsets.only(left: 10),
-                      child: Text(
+                      child: AutoSizeText(
                         markList.markersList[i]["name"],
+                        maxLines: 2,
                         style: TextStyle(
                             fontSize: 17, fontWeight: FontWeight.bold),
                       ),
@@ -244,9 +254,11 @@ class _MapFrameState extends State<MapFrame> {
                       height: 10,
                     ),
                     Container(
+                      width: 300,
+                      height: 60,
                       padding: EdgeInsets.only(left: 10),
                       alignment: Alignment.centerLeft,
-                      child: Text(
+                      child: AutoSizeText(
                         markList.markersList[i]["street"],
                         style: TextStyle(fontSize: 15, color: Colors.grey),
                       ),
@@ -255,7 +267,6 @@ class _MapFrameState extends State<MapFrame> {
                 )
               ],
             ),
-            height: 60,
           ),
           SizedBox(
             height: 17,
@@ -283,7 +294,7 @@ class _MapFrameState extends State<MapFrame> {
           Container(
             padding: EdgeInsets.only(left: 15),
             alignment: Alignment.centerLeft,
-            child: Text(
+            child: AutoSizeText(
               markList.markersList[i]["desc"],
               style: TextStyle(color: Colors.grey, fontSize: 13),
             ),
@@ -724,6 +735,7 @@ class _MapFrameState extends State<MapFrame> {
       print('listAlredyCalled');
     }
     if (!menuPressed) {
+      //set my positon
       getCurrentLocation();
       startPoint = LatLng(position.latitude, position.longitude);
 
