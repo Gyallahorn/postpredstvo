@@ -119,6 +119,7 @@ class _MapFrameState extends State<MapFrame> {
               ),
             ),
           );
+          makeRouteButton1Builder(i);
           markerAboutBuilder(i);
           print("builded");
           panelContent = markerAbout;
@@ -618,7 +619,7 @@ class _MapFrameState extends State<MapFrame> {
           ),
         ),
         SizedBox(
-          height: 70,
+          height: 30,
         ),
         GestureDetector(
           onTap: () {
