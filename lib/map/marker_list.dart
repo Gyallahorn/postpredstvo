@@ -11,8 +11,8 @@ class MarkerList {
     },
     {
       "lng": 62.0311268,
-      "ltd": 129.760587,
-      "name": "Пример 2",
+      "ltd": 129.7579104,
+      "name": "Дом Баира",
       "street": "Под Пример 1",
       "img":
           "https://lh5.googleusercontent.com/p/AF1QipOijOBA1kHiLFOhuExvsnk2FwC4R-iQGNFpY-Wy=w408-h544-k-no",

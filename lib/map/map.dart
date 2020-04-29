@@ -24,6 +24,7 @@ GoogleMapPolyline googleMapPolyline =
 class _MapFrameState extends State<MapFrame> {
   int i = 0;
   var dist;
+  var distM;
   bool listCalled = false;
   bool menuPressed = false;
   bool profilePressed = false;
@@ -55,11 +56,13 @@ class _MapFrameState extends State<MapFrame> {
   var listOfFloatButtons1 = List<Widget>();
   var listOfFloatButtons = List<Widget>();
   var makeRouteButton0;
+  var choosedMarker;
   var makeRouteButtonCancel;
   var makeRouteButton2;
   var makeRouteButton1;
   var makeRoutePanel;
   var markerAbout;
+  bool routeButtonPressed = false;
 
   //Map
   GoogleMapController myMapController;
@@ -119,10 +122,30 @@ class _MapFrameState extends State<MapFrame> {
               ),
             ),
           );
-          makeRouteButton1Builder(i);
+          // makeRouteCancelButtonBuilder(i);
+          makeRouteButton1Builder(i, distM);
           markerAboutBuilder(i);
           print("builded");
           panelContent = markerAbout;
+          if (distM < 100) {
+            var nameOfDestPoint = markList.markersList[choosedMarker]["name"];
+            print('im near');
+            showDialog(
+                context: context,
+                builder: (BuildContext context) {
+                  return AlertDialog(
+                    content: AutoSizeText(
+                        'Вы дошли до пункта назначения $nameOfDestPoint '),
+                    actions: <Widget>[
+                      new FlatButton(
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                          },
+                          child: Text('Понятно'))
+                    ],
+                  );
+                });
+          }
         }),
         child: Column(
           children: <Widget>[
@@ -274,7 +297,7 @@ class _MapFrameState extends State<MapFrame> {
           ),
           Container(
             padding: EdgeInsets.only(left: 15, right: 15),
-            child: makeRouteButton0,
+            child: (!routeButtonPressed) ? makeRouteButton0 : makeRouteButton2,
             height: 60,
           ),
           SizedBox(
@@ -305,55 +328,122 @@ class _MapFrameState extends State<MapFrame> {
     });
   }
 
-  makeRouteButton1Builder(int i) {
+  makeRouteButton1Builder(int i, int distM) {
     setState(() {
-      makeRouteButton0 = Container(
-        width: 380,
-        height: 60,
-        child: RaisedButton(
-            color: Colors.white,
-            child: Row(
-              children: <Widget>[
-                SizedBox(
-                  width: 70,
-                ),
-                Icon(
-                  Icons.directions_walk,
-                  color: Colors.blue,
-                ),
-                Text("Проложить маршрут",
-                    style: TextStyle(
-                      fontSize: 17,
-                      color: Colors.blue,
-                    ))
-              ],
-            ),
-            shape: RoundedRectangleBorder(
-                borderRadius: new BorderRadius.circular(30.0),
-                side: BorderSide(color: Colors.blue)),
-            onPressed: () => setState(() {
-                  if (pressed == 0) {
-                    pressed++;
-                  }
-                  if (pressed != 0) {
-                    _polylines.clear();
-                    pressed--;
-                  }
-                  getSomePoints(markList.markersList[i]["lng"],
-                      markList.markersList[i]["ltd"]);
-                })),
-      );
-    });
-  }
-
-  makeRouteCancelButtonBuilder(int i) {
-    setState(() {
-      print('called makeCancel');
-      makeRouteButton0 = Container(
+      print("OH WAY" + distM.toString());
+      if (distM > 100) {
+        makeRouteButton0 = Container(
+          width: 380,
+          height: 60,
+          child: RaisedButton(
+              color: Colors.white,
+              child: Row(
+                children: <Widget>[
+                  SizedBox(
+                    width: 70,
+                  ),
+                  Icon(
+                    Icons.directions_walk,
+                    color: Colors.blue,
+                  ),
+                  Text("Проложить маршрут",
+                      style: TextStyle(
+                        fontSize: 17,
+                        color: Colors.blue,
+                      ))
+                ],
+              ),
+              shape: RoundedRectangleBorder(
+                  borderRadius: new BorderRadius.circular(30.0),
+                  side: BorderSide(color: Colors.blue)),
+              onPressed: () => setState(() {
+                    routeButtonPressed = true;
+                    panelController.close();
+                    getSomePoints(markList.markersList[i]["lng"],
+                        markList.markersList[i]["ltd"]);
+                  })),
+        );
+      } else {
+        makeRouteButton0 = Container(
+          width: 380,
+          height: 60,
+          child: Row(
+            children: <Widget>[
+              SizedBox(
+                width: 17,
+              ),
+              Icon(
+                Icons.directions_walk,
+                color: Colors.blue,
+              ),
+              SizedBox(
+                width: 10,
+              ),
+              Text(
+                'На месте',
+                style: TextStyle(fontSize: 15, color: Colors.blue),
+              ),
+              SizedBox(
+                width: 17,
+              ),
+              Container(
+                height: 60,
+                width: 220,
+                child: RaisedButton(
+                    color: Colors.white,
+                    child: Row(
+                      children: <Widget>[
+                        SizedBox(
+                          width: 10,
+                        ),
+                        Icon(
+                          Icons.clear,
+                          color: Colors.blue,
+                        ),
+                        SizedBox(
+                          width: 10,
+                        ),
+                        Text("Включить AR",
+                            style: TextStyle(
+                              fontSize: 17,
+                              color: Colors.blue,
+                            ))
+                      ],
+                    ),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: new BorderRadius.circular(30.0),
+                        side: BorderSide(color: Colors.blue)),
+                    onPressed: () => setState(() {
+                          showDialog(
+                            context: context,
+                            builder: (BuildContext context) {
+                              return AlertDialog(
+                                content: Text('Work In Progress!'),
+                                actions: <Widget>[
+                                  new FlatButton(
+                                    onPressed: () {
+                                      Navigator.of(context).pop();
+                                    },
+                                    child: new Text('ok'),
+                                  ),
+                                ],
+                              );
+                            },
+                          );
+                        })),
+              ),
+            ],
+          ),
+        );
+      }
+      makeRouteButton2 = Container(
         width: 380,
         height: 60,
         child: Row(
           children: <Widget>[
+            SizedBox(
+              width: 17,
+            ),
             Icon(
               Icons.directions_walk,
               color: Colors.blue,
@@ -365,41 +455,57 @@ class _MapFrameState extends State<MapFrame> {
               'В пути',
               style: TextStyle(fontSize: 15, color: Colors.blue),
             ),
-            RaisedButton(
-                color: Colors.white,
-                child: Row(
-                  children: <Widget>[
-                    SizedBox(
-                      width: 10,
-                    ),
-                    Icon(
-                      Icons.clear,
-                      color: Colors.blue,
-                    ),
-                    SizedBox(
-                      width: 10,
-                    ),
-                    Text("Отменить маршрут",
-                        style: TextStyle(
-                          fontSize: 17,
-                          color: Colors.blue,
-                        ))
-                  ],
-                ),
-                shape: RoundedRectangleBorder(
-                    borderRadius: new BorderRadius.circular(30.0),
-                    side: BorderSide(color: Colors.blue)),
-                onPressed: () => setState(() {
-                      _polylines.clear();
-                      makeRouteButton1Builder(i);
-                    })),
+            SizedBox(
+              width: 17,
+            ),
+            Container(
+              height: 60,
+              width: 250,
+              child: RaisedButton(
+                  color: Colors.white,
+                  child: Row(
+                    children: <Widget>[
+                      SizedBox(
+                        width: 10,
+                      ),
+                      Icon(
+                        Icons.clear,
+                        color: Colors.blue,
+                      ),
+                      SizedBox(
+                        width: 10,
+                      ),
+                      Text("Отменить маршрут",
+                          style: TextStyle(
+                            fontSize: 17,
+                            color: Colors.blue,
+                          ))
+                    ],
+                  ),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: new BorderRadius.circular(30.0),
+                      side: BorderSide(color: Colors.blue)),
+                  onPressed: () => setState(() {
+                        routeButtonPressed = false;
+                        panelController.close();
+                        _polylines.clear();
+                      })),
+            ),
           ],
         ),
       );
-      initState();
-      panelContent = markerAbout;
     });
   }
+
+  // makeRouteCancelButtonBuilder(int i) {
+  //   setState(() {
+  //     print('called makeCancel');
+
+  //     initState();
+  //     panelContent = markerAbout;
+  //     makeRouteButton0 = makeRouteButton2;
+  //   });
+  // }
 
   setMapButtons() {
     setState(() {
@@ -673,7 +779,6 @@ class _MapFrameState extends State<MapFrame> {
           position: LatLng(
               markList.markersList[i]["lng"], markList.markersList[i]["ltd"]),
           onTap: () => setState(() {
-            makeRouteButton1Builder(i);
             //calc distance
             dist = distanceBetwee(
                 markList.markersList[i]["lng"],
@@ -683,11 +788,17 @@ class _MapFrameState extends State<MapFrame> {
             if (dist < 1.0) {
               dist = dist * 1000;
               dist = dist.round();
+              distM = dist;
+              choosedMarker = i;
               distance = dist.toString() + " м";
             } else {
               dist = dist.round();
+              distM = dist * 1000;
+              choosedMarker = i;
               distance = dist.toString() + " Км";
             }
+            makeRouteButton1Builder(i, distM);
+
             // routeBuilder(i, makeRouteButton2, makeRouteButton1);
             markerAboutBuilder(i);
             panelContent = markerAbout;
