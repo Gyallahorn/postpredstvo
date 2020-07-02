@@ -127,7 +127,7 @@ class _MapFrameState extends State<MapFrame> {
           markerAboutBuilder(i);
           print("builded");
           panelContent = markerAbout;
-          if (distM < 100) {
+          if (distM < 200) {
             var nameOfDestPoint = markList.markersList[choosedMarker]["name"];
             print('im near');
             showDialog(

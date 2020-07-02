@@ -1,39 +1,77 @@
 import 'package:flutter/material.dart';
+import 'package:pospredsvto/main/destinations.dart';
+import 'package:pospredsvto/main/mainFrames/ojects_list.dart';
+import 'package:pospredsvto/main_scrolls/main_scroll_view.dart';
+import 'package:pospredsvto/main_scrolls/redaction_choices.dart';
 import 'package:pospredsvto/map/map.dart';
 
 import 'map/choose_difficult.dart';
 
-class MainFrame extends StatefulWidget {
-  @override
-  _MainFrameState createState() => _MainFrameState();
-}
-
-class _MainFrameState extends State<MainFrame> {
-  int _currentIndex = 0;
+class MainFrame extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    void onTabTapped(int index) {
-      setState(() {
-        _currentIndex = index;
-      });
-    }
-
     return MaterialApp(
-      home: Scaffold(
-        appBar: AppBar(),
-        body: MainMap(),
-      ),
+      home: MyHomePage(),
     );
   }
 }
 
-class MainMap extends StatefulWidget {
+class MyHomePage extends StatefulWidget {
   @override
-  _MainMapState createState() => _MainMapState();
+  _MyHomePageState createState() => _MyHomePageState();
 }
 
-class _MainMapState extends State<MainMap> {
+class _MyHomePageState extends State<MyHomePage> {
+  initState();
+  @override
   Widget build(BuildContext context) {
-    return MapFrame();
+    return DefaultTabController(
+      length: 4,
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text("Обзор"),
+        ),
+        body: TabBarView(children: [
+          ObjectList(),
+          Center(
+            child: Text("Page 2"),
+          ),
+          Center(
+            child: Text("Page 3"),
+          ),
+          Center(
+            child: Text("Page 4"),
+          )
+        ]),
+        bottomNavigationBar: TabBar(
+          tabs: <Widget>[
+            Tab(
+              icon: Icon(
+                Icons.card_giftcard,
+                color: Colors.red,
+              ),
+            ),
+            Tab(
+              icon: Icon(
+                Icons.card_giftcard,
+                color: Colors.red,
+              ),
+            ),
+            Tab(
+              icon: Icon(
+                Icons.card_giftcard,
+                color: Colors.red,
+              ),
+            ),
+            Tab(
+              icon: Icon(
+                Icons.card_giftcard,
+                color: Colors.red,
+              ),
+            )
+          ],
+        ),
+      ),
+    );
   }
 }
