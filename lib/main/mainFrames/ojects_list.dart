@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:pospredsvto/main/mainFrames/objects.dart';
 
+import 'object_about.dart';
+
 class ObjectList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -20,24 +22,37 @@ class _MyObjectListState extends State<MyObjectList> {
   void listBuilder() {
     for (int i = 1; i < objectsList.length; i++) {
       listOfObjects.add(GestureDetector(
+          onTap: () => {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => ObjectAbout(),
+                  ),
+                ),
+              },
           child: Column(children: [
-        Container(
-          child: Image.network(
-              "https://encrypted-tbn0.gstatic.com/images?q=tbn%3AANd9GcQXBKqhH8VS4qdb6Lcu-6SOe0qKxQmZo3pJvQ&usqp=CAU"),
-        ),
-        Row(
-          children: <Widget>[
-            Text("example 1 "),
-            Divider(
-              color: Colors.grey,
+            Container(
+              height: 200,
+              decoration: BoxDecoration(
+                image: DecorationImage(
+                    image: NetworkImage(
+                        "https://encrypted-tbn0.gstatic.com/images?q=tbn%3AANd9GcQXBKqhH8VS4qdb6Lcu-6SOe0qKxQmZo3pJvQ&usqp=CAU"),
+                    fit: BoxFit.fitWidth),
+              ),
             ),
-            Text("4.9")
-          ],
-        ),
-        SizedBox(
-          height: 20,
-        )
-      ])));
+            Row(
+              children: <Widget>[
+                Text("example 1 "),
+                Divider(
+                  color: Colors.grey,
+                ),
+                Text("4.9")
+              ],
+            ),
+            SizedBox(
+              height: 20,
+            )
+          ])));
     }
   }
 

@@ -1,11 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:pospredsvto/main/destinations.dart';
 import 'package:pospredsvto/main/mainFrames/ojects_list.dart';
-import 'package:pospredsvto/main_scrolls/main_scroll_view.dart';
-import 'package:pospredsvto/main_scrolls/redaction_choices.dart';
-import 'package:pospredsvto/map/map.dart';
-
-import 'map/choose_difficult.dart';
 
 class MainFrame extends StatelessWidget {
   @override
