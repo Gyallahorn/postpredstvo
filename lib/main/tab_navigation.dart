@@ -5,7 +5,7 @@ import 'package:pospredsvto/quiz/quiz.dart';
 
 class NavigationTab {
   final List<Widget> widgetList = [
-    MainMap(),
+//    MainMap(),
     Quiz(),
     MyCabinet(),
   ];

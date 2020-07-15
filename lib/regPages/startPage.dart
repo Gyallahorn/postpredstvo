@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:pospredsvto/regPages/RegPage/regpage1.dart';
 import 'package:pospredsvto/regPages/logPage/logpage1.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class StartPage extends StatefulWidget {
   @override
@@ -8,6 +9,12 @@ class StartPage extends StatefulWidget {
 }
 
 class _StartPageState extends State<StartPage> {
+  SharedPreferences sharedPreferences ;
+
+  void signUp(){
+
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(

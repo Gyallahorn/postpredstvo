@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:pospredsvto/main/mainFrames/ojects_list.dart';
+import 'package:pospredsvto/quiz/select_quiz.dart';
+
+import 'map/map_test.dart';
 
 class MainFrame extends StatelessWidget {
   @override
@@ -23,16 +26,18 @@ class _MyHomePageState extends State<MyHomePage> {
       length: 4,
       child: Scaffold(
         appBar: AppBar(
-          title: Text("Обзор"),
+          backgroundColor: Colors.white,
+          leading: GestureDetector(child: Icon(Icons.menu,color: Colors.red,),),
+          actions: <Widget>[GestureDetector(child:Icon(Icons.search,color:Colors.red)),SizedBox(width: 10,)
+            ,GestureDetector(child:Icon(Icons.filter_list,color:Colors.red)),SizedBox(width: 10,)
+            ,GestureDetector(child:Icon(Icons.map,color:Colors.red))],
+          title: Text("Обзор",style: TextStyle(color: Colors.black),),
         ),
         body: TabBarView(children: [
           ObjectList(),
           Center(
-            child: Text("Page 2"),
-          ),
-          Center(
             child: Text("Page 3"),
-          ),
+          ),SelectQuiz(),
           Center(
             child: Text("Page 4"),
           )

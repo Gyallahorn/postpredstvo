@@ -30,6 +30,7 @@ class _MapFrameState extends State<MapFrame> {
   bool profilePressed = false;
   bool testPressed = false;
   var panelContent;
+  var routeProgress;
   var menuPanelContent;
   var distance = "выберите маркер";
 
@@ -73,7 +74,8 @@ class _MapFrameState extends State<MapFrame> {
   double zoom = 12;
   Position csreenPos;
   PanelController panelController = new PanelController();
-  var markList;
+  var markList = MarkerList();
+
   LatLng startPoint;
 
 //get my position
@@ -108,96 +110,96 @@ class _MapFrameState extends State<MapFrame> {
     });
   }
 
-//set list view from array
-  void listBuilder() async {
-    for (int i = 0; i < markList.markersList.length; i++) {
-      listOfPlaces.add(GestureDetector(
-        onTap: () => setState(() {
-          myMapController.animateCamera(
-            CameraUpdate.newCameraPosition(
-              CameraPosition(
-                target: LatLng(markList.markersList[i]["lng"],
-                    markList.markersList[i]["ltd"]),
-                zoom: 15,
-              ),
-            ),
-          );
-          // makeRouteCancelButtonBuilder(i);
-          makeRouteButton1Builder(i, distM);
-          markerAboutBuilder(i);
-          print("builded");
-          panelContent = markerAbout;
-          if (distM < 200) {
-            var nameOfDestPoint = markList.markersList[choosedMarker]["name"];
-            print('im near');
-            showDialog(
-                context: context,
-                builder: (BuildContext context) {
-                  return AlertDialog(
-                    content: AutoSizeText(
-                        'Вы дошли до пункта назначения $nameOfDestPoint '),
-                    actions: <Widget>[
-                      new FlatButton(
-                          onPressed: () {
-                            Navigator.of(context).pop();
-                          },
-                          child: Text('Понятно'))
-                    ],
-                  );
-                });
-          }
-        }),
-        child: Column(
-          children: <Widget>[
-            Row(
-              children: <Widget>[
-                SizedBox(
-                  width: 15,
-                ),
-                CircleAvatar(
-                  radius: 30,
-                  backgroundColor: Colors.white,
-                  child: Icon(
-                    Icons.location_on,
-                    color: Colors.grey,
-                  ),
-                ),
-                SizedBox(
-                  width: 12,
-                ),
-                Column(
-                  children: <Widget>[
-                    Container(
-                      width: 300,
-                      child: AutoSizeText(
-                        markList.markersList[i]["name"],
-                        style: TextStyle(
-                            fontSize: 15, fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                    SizedBox(
-                      height: 4,
-                    ),
-                    Container(
-                      width: 300,
-                      child: AutoSizeText(
-                        markList.markersList[i]["street"],
-                        maxLines: 2,
-                        style: TextStyle(fontSize: 13, color: Colors.grey[400]),
-                      ),
-                    )
-                  ],
-                )
-              ],
-            ),
-            SizedBox(
-              height: 14,
-            )
-          ],
-        ),
-      ));
-    }
-  }
+////set list view from array
+//  void listBuilder() async {
+//    for (int i = 0; i < markList.markersList.length; i++) {
+//      listOfPlaces.add(GestureDetector(
+//        onTap: () => setState(() {
+//          myMapController.animateCamera(
+//            CameraUpdate.newCameraPosition(
+//              CameraPosition(
+//                target: LatLng(markList.markersList[i]["lng"],
+//                    markList.markersList[i]["ltd"]),
+//                zoom: 15,
+//              ),
+//            ),
+//          );
+//          // makeRouteCancelButtonBuilder(i);
+//          makeRouteButton1Builder(i, distM);
+//          markerAboutBuilder(i);
+//          print("builded");
+//          panelContent = markerAbout;
+//          if (distM < 200) {
+//            var nameOfDestPoint = markList.markersList[choosedMarker]["name"];
+//            print('im near');
+//            showDialog(
+//                context: context,
+//                builder: (BuildContext context) {
+//                  return AlertDialog(
+//                    content: AutoSizeText(
+//                        'Вы дошли до пункта назначения $nameOfDestPoint '),
+//                    actions: <Widget>[
+//                      new FlatButton(
+//                          onPressed: () {
+//                            Navigator.of(context).pop();
+//                          },
+//                          child: Text('Понятно'))
+//                    ],
+//                  );
+//                });
+//          }
+//        }),
+//        child: Column(
+//          children: <Widget>[
+//            Row(
+//              children: <Widget>[
+//                SizedBox(
+//                  width: 15,
+//                ),
+//                CircleAvatar(
+//                  radius: 30,
+//                  backgroundColor: Colors.white,
+//                  child: Icon(
+//                    Icons.location_on,
+//                    color: Colors.grey,
+//                  ),
+//                ),
+//                SizedBox(
+//                  width: 12,
+//                ),
+//                Column(
+//                  children: <Widget>[
+//                    Container(
+//                      width: 300,
+//                      child: AutoSizeText(
+//                        markList.markersList[i]["name"],
+//                        style: TextStyle(
+//                            fontSize: 15, fontWeight: FontWeight.bold),
+//                      ),
+//                    ),
+//                    SizedBox(
+//                      height: 4,
+//                    ),
+//                    Container(
+//                      width: 300,
+//                      child: AutoSizeText(
+//                        markList.markersList[i]["street"],
+//                        maxLines: 2,
+//                        style: TextStyle(fontSize: 13, color: Colors.grey[400]),
+//                      ),
+//                    )
+//                  ],
+//                )
+//              ],
+//            ),
+//            SizedBox(
+//              height: 14,
+//            )
+//          ],
+//        ),
+//      ));
+//    }
+//  }
 
   // void routeBuilder(int i, makeRouteButton, makeRouteButton1) {
   //   setState(() {
@@ -327,175 +329,193 @@ class _MapFrameState extends State<MapFrame> {
       );
     });
   }
+  void setPolylines() async {
+    for(int i =0;i<3;i++){
+      if(markList.markersList[i]["ltd"]==null){
+        print("array is null");
+        break;
 
-  makeRouteButton1Builder(int i, int distM) {
-    setState(() {
-      print("OH WAY" + distM.toString());
-      if (distM > 100) {
-        makeRouteButton0 = Container(
-          width: 380,
-          height: 60,
-          child: RaisedButton(
-              color: Colors.white,
-              child: Row(
-                children: <Widget>[
-                  SizedBox(
-                    width: 70,
-                  ),
-                  Icon(
-                    Icons.directions_walk,
-                    color: Colors.blue,
-                  ),
-                  Text("Проложить маршрут",
-                      style: TextStyle(
-                        fontSize: 17,
-                        color: Colors.blue,
-                      ))
-                ],
-              ),
-              shape: RoundedRectangleBorder(
-                  borderRadius: new BorderRadius.circular(30.0),
-                  side: BorderSide(color: Colors.blue)),
-              onPressed: () => setState(() {
-                    routeButtonPressed = true;
-                    panelController.close();
-                    getSomePoints(markList.markersList[i]["lng"],
-                        markList.markersList[i]["ltd"]);
-                  })),
-        );
-      } else {
-        makeRouteButton0 = Container(
-          width: 380,
-          height: 60,
-          child: Row(
-            children: <Widget>[
-              SizedBox(
-                width: 17,
-              ),
-              Icon(
-                Icons.directions_walk,
-                color: Colors.blue,
-              ),
-              SizedBox(
-                width: 10,
-              ),
-              Text(
-                'На месте',
-                style: TextStyle(fontSize: 15, color: Colors.blue),
-              ),
-              SizedBox(
-                width: 17,
-              ),
-              Container(
-                height: 60,
-                width: 220,
-                child: RaisedButton(
-                    color: Colors.white,
-                    child: Row(
-                      children: <Widget>[
-                        SizedBox(
-                          width: 10,
-                        ),
-                        Icon(
-                          Icons.clear,
-                          color: Colors.blue,
-                        ),
-                        SizedBox(
-                          width: 10,
-                        ),
-                        Text("Включить AR",
-                            style: TextStyle(
-                              fontSize: 17,
-                              color: Colors.blue,
-                            ))
-                      ],
-                    ),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: new BorderRadius.circular(30.0),
-                        side: BorderSide(color: Colors.blue)),
-                    onPressed: () => setState(() {
-                          showDialog(
-                            context: context,
-                            builder: (BuildContext context) {
-                              return AlertDialog(
-                                content: Text('Work In Progress!'),
-                                actions: <Widget>[
-                                  new FlatButton(
-                                    onPressed: () {
-                                      Navigator.of(context).pop();
-                                    },
-                                    child: new Text('ok'),
-                                  ),
-                                ],
-                              );
-                            },
-                          );
-                        })),
-              ),
-            ],
-          ),
-        );
       }
-      makeRouteButton2 = Container(
-        width: 380,
-        height: 60,
-        child: Row(
-          children: <Widget>[
-            SizedBox(
-              width: 17,
-            ),
-            Icon(
-              Icons.directions_walk,
-              color: Colors.blue,
-            ),
-            SizedBox(
-              width: 10,
-            ),
-            Text(
-              'В пути',
-              style: TextStyle(fontSize: 15, color: Colors.blue),
-            ),
-            SizedBox(
-              width: 17,
-            ),
-            Container(
-              height: 60,
-              width: 250,
-              child: RaisedButton(
-                  color: Colors.white,
-                  child: Row(
-                    children: <Widget>[
-                      SizedBox(
-                        width: 10,
-                      ),
-                      Icon(
-                        Icons.clear,
-                        color: Colors.blue,
-                      ),
-                      SizedBox(
-                        width: 10,
-                      ),
-                      Text("Отменить маршрут",
-                          style: TextStyle(
-                            fontSize: 17,
-                            color: Colors.blue,
-                          ))
-                    ],
-                  ),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: new BorderRadius.circular(30.0),
-                      side: BorderSide(color: Colors.blue)),
-                  onPressed: () => setState(() {
-                        routeButtonPressed = false;
-                        panelController.close();
-                        _polylines.clear();
-                      })),
-            ),
-          ],
-        ),
-      );
-    });
+      List<LatLng> _coordinates =
+      await googleMapPolyline.getCoordinatesWithLocation(
+
+          origin: LatLng(markList.markersList[i]["lng"],markList.markersList[i]["ltd"]),
+          destination: LatLng(markList.markersList[i+1]["lng"],markList.markersList[i+1]["ltd"]),
+          mode: RouteMode.walking);
+      _addPolyline(_coordinates);
+
+
+    }
   }
+
+//  makeRouteButton1Builder(int i, int distM) {
+//    setState(() {
+//      print("OH WAY" + distM.toString());
+//      if (distM > 100) {
+//        makeRouteButton0 = Container(
+//          width: 380,
+//          height: 60,
+//          child: RaisedButton(
+//              color: Colors.white,
+//              child: Row(
+//                children: <Widget>[
+//                  SizedBox(
+//                    width: 70,
+//                  ),
+//                  Icon(
+//                    Icons.directions_walk,
+//                    color: Colors.blue,
+//                  ),
+//                  Text("Проложить маршрут",
+//                      style: TextStyle(
+//                        fontSize: 17,
+//                        color: Colors.blue,
+//                      ))
+//                ],
+//              ),
+//              shape: RoundedRectangleBorder(
+//                  borderRadius: new BorderRadius.circular(30.0),
+//                  side: BorderSide(color: Colors.blue)),
+//              onPressed: () => setState(() {
+//                    routeButtonPressed = true;
+//                    panelController.close();
+//                    getSomePoints(markList.markersList[i]["lng"],
+//                        markList.markersList[i]["ltd"]);
+//                  })),
+//        );
+//      } else {
+//        makeRouteButton0 = Container(
+//          width: 380,
+//          height: 60,
+//          child: Row(
+//            children: <Widget>[
+//              SizedBox(
+//                width: 17,
+//              ),
+//              Icon(
+//                Icons.directions_walk,
+//                color: Colors.blue,
+//              ),
+//              SizedBox(
+//                width: 10,
+//              ),
+//              Text(
+//                'На месте',
+//                style: TextStyle(fontSize: 15, color: Colors.blue),
+//              ),
+//              SizedBox(
+//                width: 17,
+//              ),
+//              Container(
+//                height: 60,
+//                width: 220,
+//                child: RaisedButton(
+//                    color: Colors.white,
+//                    child: Row(
+//                      children: <Widget>[
+//                        SizedBox(
+//                          width: 10,
+//                        ),
+//                        Icon(
+//                          Icons.clear,
+//                          color: Colors.blue,
+//                        ),
+//                        SizedBox(
+//                          width: 10,
+//                        ),
+//                        Text("Включить AR",
+//                            style: TextStyle(
+//                              fontSize: 17,
+//                              color: Colors.blue,
+//                            ))
+//                      ],
+//                    ),
+//                    shape: RoundedRectangleBorder(
+//                        borderRadius: new BorderRadius.circular(30.0),
+//                        side: BorderSide(color: Colors.blue)),
+//                    onPressed: () => setState(() {
+//                          showDialog(
+//                            context: context,
+//                            builder: (BuildContext context) {
+//                              return AlertDialog(
+//                                content: Text('Work In Progress!'),
+//                                actions: <Widget>[
+//                                  new FlatButton(
+//                                    onPressed: () {
+//                                      Navigator.of(context).pop();
+//                                    },
+//                                    child: new Text('ok'),
+//                                  ),
+//                                ],
+//                              );
+//                            },
+//                          );
+//                        })),
+//              ),
+//            ],
+//          ),
+//        );
+//      }
+//      makeRouteButton2 = Container(
+//        width: 380,
+//        height: 60,
+//        child: Row(
+//          children: <Widget>[
+//            SizedBox(
+//              width: 17,
+//            ),
+//            Icon(
+//              Icons.directions_walk,
+//              color: Colors.blue,
+//            ),
+//            SizedBox(
+//              width: 10,
+//            ),
+//            Text(
+//              'В пути',
+//              style: TextStyle(fontSize: 15, color: Colors.blue),
+//            ),
+//            SizedBox(
+//              width: 17,
+//            ),
+//            Container(
+//              height: 60,
+//              width: 250,
+//              child: RaisedButton(
+//                  color: Colors.white,
+//                  child: Row(
+//                    children: <Widget>[
+//                      SizedBox(
+//                        width: 10,
+//                      ),
+//                      Icon(
+//                        Icons.clear,
+//                        color: Colors.blue,
+//                      ),
+//                      SizedBox(
+//                        width: 10,
+//                      ),
+//                      Text("Отменить маршрут",
+//                          style: TextStyle(
+//                            fontSize: 17,
+//                            color: Colors.blue,
+//                          ))
+//                    ],
+//                  ),
+//                  shape: RoundedRectangleBorder(
+//                      borderRadius: new BorderRadius.circular(30.0),
+//                      side: BorderSide(color: Colors.blue)),
+//                  onPressed: () => setState(() {
+//                        routeButtonPressed = false;
+//                        panelController.close();
+//                        _polylines.clear();
+//                      })),
+//            ),
+//          ],
+//        ),
+//      );
+//    });
+//  }
 
   // makeRouteCancelButtonBuilder(int i) {
   //   setState(() {
@@ -512,51 +532,51 @@ class _MapFrameState extends State<MapFrame> {
       // map buttons
       listOfFloatButtons2 = <Widget>[
         SizedBox(
-          height: 200,
+          height: 350,
         ),
 
-        GestureDetector(
-          onTap: () => setState(() {
-            panelContent = menuPanelContent;
-            panelController.open();
-          }),
-          child: CircleAvatar(
-            backgroundColor: Colors.white,
-            child: Icon(
-              Icons.menu,
-              color: Colors.blue,
-            ),
-          ),
-        ),
-        SizedBox(
-          height: 20,
-        ),
-        GestureDetector(
-          onTap: () => {myMapController.animateCamera(CameraUpdate.zoomIn())},
-          child: CircleAvatar(
-            backgroundColor: Colors.white,
-            child: Icon(
-              Icons.add,
-              color: Colors.blue,
-            ),
-          ),
-        ),
-        SizedBox(
-          height: 20,
-        ),
-        GestureDetector(
-          onTap: () => {myMapController.animateCamera(CameraUpdate.zoomOut())},
-          child: CircleAvatar(
-            backgroundColor: Colors.white,
-            child: Icon(
-              Icons.remove,
-              color: Colors.blue,
-            ),
-          ),
-        ),
-        SizedBox(
-          height: 20,
-        ), //find me
+//        GestureDetector(
+//          onTap: () => setState(() {
+//            panelContent = menuPanelContent;
+//            panelController.open();
+//          }),
+//          child: CircleAvatar(
+//            backgroundColor: Colors.white,
+//            child: Icon(
+//              Icons.menu,
+//              color: Colors.blue,
+//            ),
+//          ),
+//        ),
+//        SizedBox(
+//          height: 20,
+//        ),
+//        GestureDetector(
+//          onTap: () => {myMapController.animateCamera(CameraUpdate.zoomIn())},
+//          child: CircleAvatar(
+//            backgroundColor: Colors.white,
+//            child: Icon(
+//              Icons.add,
+//              color: Colors.blue,
+//            ),
+//          ),
+//        ),
+//        SizedBox(
+//          height: 20,
+//        ),
+//        GestureDetector(
+//          onTap: () => {myMapController.animateCamera(CameraUpdate.zoomOut())},
+//          child: CircleAvatar(
+//            backgroundColor: Colors.white,
+//            child: Icon(
+//              Icons.remove,
+//              color: Colors.blue,
+//            ),
+//          ),
+//        ),
+//        SizedBox(
+//          height: 20,
+//        ), //find me
         GestureDetector(
           onTap: () => setState(() {
             myMapController.animateCamera(
@@ -571,7 +591,7 @@ class _MapFrameState extends State<MapFrame> {
           child: CircleAvatar(
             backgroundColor: Colors.white,
             child: Icon(
-              Icons.near_me,
+              Icons.gps_fixed,
               color: Colors.blue,
             ),
           ),
@@ -579,194 +599,215 @@ class _MapFrameState extends State<MapFrame> {
         SizedBox(
           height: 70,
         ),
-        GestureDetector(
-          onTap: () => setState(() {
-            listOfFloatButtons = listOfFloatButtons1;
-            panelContent = MyCabinet();
-          }),
-          child: CircleAvatar(
-            backgroundColor: Colors.white,
-            child: Icon(
-              Icons.keyboard_arrow_up,
-              color: Colors.blue,
-            ),
-          ),
-        )
+//        GestureDetector(
+//          onTap: () => setState(() {
+//            listOfFloatButtons = listOfFloatButtons1;
+//            panelContent = MyCabinet();
+//          }),
+//          child: CircleAvatar(
+//            backgroundColor: Colors.white,
+//            child: Icon(
+//              Icons.keyboard_arrow_up,
+//              color: Colors.blue,
+//            ),
+//          ),
+//        )
       ];
     });
   }
 
-  setFloatingButtons() {
-    setState(() {
-      // Profile,Test, Media,Language buttons
-      listOfFloatButtons1 = <Widget>[
-        SizedBox(
-          height: 127,
-        ),
-        GestureDetector(
-          onTap: () => setState(() {
-            profilePressed = true;
-            testPressed = false;
-            panelContent = MyCabinet();
-            panelController.open();
-          }),
-          child: Container(
-            color: Colors.transparent,
-            height: 80,
-            width: 80,
-            child: new Container(
-              child: Column(
-                children: <Widget>[
-                  SizedBox(
-                    height: 10,
-                  ),
-                  Icon(
-                    Icons.account_circle,
-                    size: 30,
-                    color: Colors.blue,
-                  ),
-                  Text('Профиль')
-                ],
-              ),
-              decoration: new BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: new BorderRadius.all(Radius.circular(12))),
-            ),
-          ),
-        ),
-        SizedBox(
-          height: 20,
-        ),
-        GestureDetector(
-          onTap: () => setState(() {
-            testPressed = true;
-            profilePressed = false;
-            panelContent = SelectQuiz();
-            panelController.open();
-          }),
-          child: Container(
-            color: Colors.transparent,
-            height: 80,
-            width: 80,
-            child: new Container(
-              child: Column(
-                children: <Widget>[
-                  SizedBox(
-                    height: 10,
-                  ),
-                  Icon(
-                    Icons.toc,
-                    size: 30,
-                    color: Colors.blue,
-                  ),
-                  Text('Тесты')
-                ],
-              ),
-              decoration: new BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: new BorderRadius.all(Radius.circular(12))),
-            ),
-          ),
-        ),
-        SizedBox(
-          height: 20,
-        ),
-        GestureDetector(
-          child: Container(
-            color: Colors.transparent,
-            height: 80,
-            width: 80,
-            child: new Container(
-              child: Column(
-                children: <Widget>[
-                  SizedBox(
-                    height: 10,
-                  ),
-                  Icon(
-                    Icons.photo_library,
-                    size: 30,
-                    color: Colors.blue,
-                  ),
-                  Text('Медиа')
-                ],
-              ),
-              decoration: new BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: new BorderRadius.all(Radius.circular(12))),
-            ),
-          ),
-        ),
-        SizedBox(
-          height: 20,
-        ), //find me
-        GestureDetector(
-          child: Container(
-            color: Colors.transparent,
-            height: 80,
-            width: 80,
-            child: new Container(
-              child: Column(
-                children: <Widget>[
-                  SizedBox(
-                    height: 10,
-                  ),
-                  Icon(
-                    Icons.language,
-                    size: 30,
-                    color: Colors.blue,
-                  ),
-                  Text('Язык')
-                ],
-              ),
-              decoration: new BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: new BorderRadius.all(Radius.circular(12))),
-            ),
-          ),
-        ),
-        SizedBox(
-          height: 30,
-        ),
-        GestureDetector(
-          onTap: () {
-            setState(() {
-              listOfFloatButtons = listOfFloatButtons2;
-            });
-          },
-          child: CircleAvatar(
-            backgroundColor: Colors.white,
-            child: Icon(
-              Icons.keyboard_arrow_down,
-              color: Colors.blue,
-            ),
-          ),
-        )
-      ];
-    });
-  }
-
+//  setFloatingButtons() {
+//    setState(() {
+//      // Profile,Test, Media,Language buttons
+//      listOfFloatButtons1 = <Widget>[
+//        SizedBox(
+//          height: 127,
+//        ),
+//        GestureDetector(
+//          onTap: () => setState(() {
+//            profilePressed = true;
+//            testPressed = false;
+//            panelContent = MyCabinet();
+//            panelController.open();
+//          }),
+//          child: Container(
+//            color: Colors.transparent,
+//            height: 80,
+//            width: 80,
+//            child: new Container(
+//              child: Column(
+//                children: <Widget>[
+//                  SizedBox(
+//                    height: 10,
+//                  ),
+//                  Icon(
+//                    Icons.account_circle,
+//                    size: 30,
+//                    color: Colors.blue,
+//                  ),
+//                  Text('Профиль')
+//                ],
+//              ),
+//              decoration: new BoxDecoration(
+//                  color: Colors.white,
+//                  borderRadius: new BorderRadius.all(Radius.circular(12))),
+//            ),
+//          ),
+//        ),
+//        SizedBox(
+//          height: 20,
+//        ),
+//        GestureDetector(
+//          onTap: () => setState(() {
+//            testPressed = true;
+//            profilePressed = false;
+//            panelContent = SelectQuiz();
+//            panelController.open();
+//          }),
+//          child: Container(
+//            color: Colors.transparent,
+//            height: 80,
+//            width: 80,
+//            child: new Container(
+//              child: Column(
+//                children: <Widget>[
+//                  SizedBox(
+//                    height: 10,
+//                  ),
+//                  Icon(
+//                    Icons.toc,
+//                    size: 30,
+//                    color: Colors.blue,
+//                  ),
+//                  Text('Тесты')
+//                ],
+//              ),
+//              decoration: new BoxDecoration(
+//                  color: Colors.white,
+//                  borderRadius: new BorderRadius.all(Radius.circular(12))),
+//            ),
+//          ),
+//        ),
+//        SizedBox(
+//          height: 20,
+//        ),
+//        GestureDetector(
+//          child: Container(
+//            color: Colors.transparent,
+//            height: 80,
+//            width: 80,
+//            child: new Container(
+//              child: Column(
+//                children: <Widget>[
+//                  SizedBox(
+//                    height: 10,
+//                  ),
+//                  Icon(
+//                    Icons.photo_library,
+//                    size: 30,
+//                    color: Colors.blue,
+//                  ),
+//                  Text('Медиа')
+//                ],
+//              ),
+//              decoration: new BoxDecoration(
+//                  color: Colors.white,
+//                  borderRadius: new BorderRadius.all(Radius.circular(12))),
+//            ),
+//          ),
+//        ),
+//        SizedBox(
+//          height: 20,
+//        ), //find me
+//        GestureDetector(
+//          child: Container(
+//            color: Colors.transparent,
+//            height: 80,
+//            width: 80,
+//            child: new Container(
+//              child: Column(
+//                children: <Widget>[
+//                  SizedBox(
+//                    height: 10,
+//                  ),
+//                  Icon(
+//                    Icons.language,
+//                    size: 30,
+//                    color: Colors.blue,
+//                  ),
+//                  Text('Язык')
+//                ],
+//              ),
+//              decoration: new BoxDecoration(
+//                  color: Colors.white,
+//                  borderRadius: new BorderRadius.all(Radius.circular(12))),
+//            ),
+//          ),
+//        ),
+//        SizedBox(
+//          height: 30,
+//        ),
+//        GestureDetector(
+//          onTap: () {
+//            setState(() {
+//              listOfFloatButtons = listOfFloatButtons2;
+//            });
+//          },
+//          child: CircleAvatar(
+//            backgroundColor: Colors.white,
+//            child: Icon(
+//              Icons.keyboard_arrow_down,
+//              color: Colors.blue,
+//            ),
+//          ),
+//        )
+//      ];
+//    });
+//  }
+//##SlideMenu Content
   setMenuPanelContent() {
     setState(() {
-      menuPanelContent = Material(
-          child: Column(
-        children: <Widget>[
-          Container(
-            width: 50,
-            child: Divider(
-              thickness: 5,
-              color: Colors.grey,
-            ),
-          ),
-          SizedBox(
-            height: 17,
-          ),
-          Expanded(
-            child: ListView(
-              children: listOfPlaces,
-            ),
-          )
-        ],
-      ));
+//      menuPanelContent = Material(
+//          child: Column(
+//        children: <Widget>[
+//          Container(
+//            width: 50,
+//            child: Divider(
+//              thickness: 5,
+//              color: Colors.grey,
+//            ),
+//          ),
+//          SizedBox(
+//            height: 17,
+//          ),
+//          Expanded(
+//            child: ListView(
+//              children: listOfPlaces,
+//            ),
+//          )
+//        ],
+//      ));
+    routeProgress = Material(
+      child: Column(children: <Widget>[
+        SizedBox(height: 20,),
+      GestureDetector(
+        onTap:(){panelController.open();},
+        child: Row(children: <Widget>[
+          SizedBox(width: 10,),
+          Icon(Icons.keyboard_arrow_up,),
+          SizedBox(width: 100,),
+          Text("МАРШРУТ ТУРА",style: TextStyle(color: Colors.grey),textAlign: TextAlign.center,),
+
+        ],),
+      ),SizedBox(height: 10,) ,
+        Divider(),
+        SizedBox(height: 10,),
+        Center(child: Text("Тур только начался, продолжайте движение"),),
+        SizedBox(height: 10,),
+        Center(child: Text("0 из 11",style: TextStyle(fontSize: 30,color: Colors.black),),),
+        SizedBox(height: 10,),
+        GestureDetector(child: Text("Текущие результаты",style: TextStyle(color: Colors.blue),),)
+    ],),);
     });
   }
 
@@ -797,7 +838,7 @@ class _MapFrameState extends State<MapFrame> {
               choosedMarker = i;
               distance = dist.toString() + " Км";
             }
-            makeRouteButton1Builder(i, distM);
+//            makeRouteButton1Builder(i, distM);
 
             // routeBuilder(i, makeRouteButton2, makeRouteButton1);
             markerAboutBuilder(i);
@@ -816,14 +857,16 @@ class _MapFrameState extends State<MapFrame> {
     });
   }
 
+
+
   @override
   void initState() {
     getGeo();
     getCurrentLocation();
-
+    setPolylines();
     markList = new MarkerList();
     setMapButtons();
-    setFloatingButtons();
+//    setFloatingButtons();
     setMenuPanelContent();
     listOfFloatButtons = listOfFloatButtons2;
     panelContent = menuPanelContent;
@@ -841,7 +884,7 @@ class _MapFrameState extends State<MapFrame> {
     }
 
     if (!listCalled) {
-      listBuilder();
+//      listBuilder();
       listCalled = true;
     } else {
       print('listAlredyCalled');
@@ -850,17 +893,19 @@ class _MapFrameState extends State<MapFrame> {
       //set my positon
       getCurrentLocation();
       startPoint = LatLng(position.latitude, position.longitude);
+      setMenuPanelContent();
 
       return Material(
         child: Scaffold(
+          appBar: AppBar(title: Text("Уличное искуство"),),
             body: SlidingUpPanel(
           controller: panelController,
           borderRadius: radius,
           boxShadow: boxShad,
-          minHeight: 20,
-          maxHeight: 350,
+          minHeight: 60,
+          maxHeight: 190,
           //Panel
-          panel: panelContent,
+          panel: routeProgress,
           //MainScreen
           body: Scaffold(
             floatingActionButton: Column(children: listOfFloatButtons),

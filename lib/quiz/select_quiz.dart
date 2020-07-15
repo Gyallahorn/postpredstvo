@@ -7,14 +7,7 @@ class SelectQuiz extends StatelessWidget {
     return Material(
       child: Column(
         children: <Widget>[
-          Center(
-            child: Container(
-              width: 50,
-              child: Divider(
-                thickness: 5,
-              ),
-            ),
-          ),
+SizedBox(height: 20,),
           Container(
             padding: EdgeInsets.only(left: 15),
             alignment: Alignment.centerLeft,
