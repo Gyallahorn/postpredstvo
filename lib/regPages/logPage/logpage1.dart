@@ -7,64 +7,96 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 
 class LogPage1 extends StatelessWidget {
-  final emailController = TextEditingController();
-  final passwordController = TextEditingController();
-
+  var emailController = TextEditingController();
+  var passwordController = TextEditingController();
+  String email;
   bool log;
   String token;
   @override
   Widget build(BuildContext context) {
-
     void wrongData() {
       print("wrong email or password");
-      showDialog(context:context,builder: (BuildContext context){
-        return AlertDialog(title: Text("Ошибка"),content: Text("неверный email или пароль"),actions: <Widget>[
-          FlatButton(child: Text("Закрыть"),onPressed: ()=>{
-            Navigator.of(context).pop()
-          },)
-        ],);
-      });
+      showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: Text("Ошибка"),
+              content: Text("неверный email или пароль"),
+              actions: <Widget>[
+                FlatButton(
+                  child: Text("Закрыть"),
+                  onPressed: () => {Navigator.of(context).pop()},
+                )
+              ],
+            );
+          });
+    }
+
+    void confirmEmail() {
+      print("pls confirm your email");
+      showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: Text("Ошибка"),
+              content: Text("Пожалуйста потвердите вашу почту"),
+              actions: <Widget>[
+                FlatButton(
+                  child: Text("Закрыть"),
+                  onPressed: () => {Navigator.of(context).pop()},
+                )
+              ],
+            );
+          });
+    }
+
+    void checkEmailInStorage() async {
+      SharedPreferences sharedPreferences =
+          await SharedPreferences.getInstance();
+      if (sharedPreferences.getString('email') != null) {
+        email = sharedPreferences.getString('email');
+        emailController.text = email;
+        print(email);
+      }
     }
 
     Future<String> _sendRequest(String email, String passwrod) async {
-      SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
-      token = sharedPreferences.getString("token");
-      print(token);
+      SharedPreferences sharedPreferences =
+          await SharedPreferences.getInstance();
 
       var jsonResponse;
 
-      var response  = await http.post('http://192.168.0.103:4000/api/user/signin',
-          body: {'email':email,'password':passwrod},headers: {
-          HttpHeaders.authorizationHeader: "Bearer $token"
-          }, );
-        print("token is send");
-      if(response.statusCode==200) {
+      var response = await http.post(
+        'http://192.168.1.38:4000/api/user/signin',
+        body: {'email': email, 'password': passwrod},
+      );
+      jsonResponse = json.decode(response.body);
+
+      if (jsonResponse["msg"] == "success") {
         print("good code 200");
-        jsonResponse = json.decode(response.body);
+
         var res = jsonResponse;
         print(jsonResponse["msg"]);
-        print("user logged in! "+response.body.toString());
+        print("user logged in! token:" + jsonResponse["token"]);
+        sharedPreferences.setString('token', jsonResponse["token"]);
+        print("logged in");
 
-        if(jsonResponse["msg"]=="success"){
-          print("logged in");
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => MainFrame()),
-          );
-        }
-        else{
-          print(response.toString());
-          wrongData();
-        }
-        return response.body;
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => MainFrame()),
+        );
       }
-      else{
+      if (jsonResponse["msg"] == "confirm your email") {
+        confirmEmail();
+      }
+      if (jsonResponse["msg"] == "wrong password or email") {
+        print(response.toString());
         wrongData();
       }
     }
 
-
-
+    checkEmailInStorage();
+    emailController.text = email;
     return Scaffold(
       appBar: AppBar(
         elevation: 1,
@@ -109,7 +141,7 @@ class LogPage1 extends StatelessWidget {
             Padding(
               padding: EdgeInsets.fromLTRB(0, 30, 0, 0),
               child: TextField(
-                controller:  emailController,
+                controller: emailController,
                 decoration: InputDecoration(
                     prefixIcon: Padding(
                         padding: EdgeInsets.fromLTRB(20, 15, 15, 0),
