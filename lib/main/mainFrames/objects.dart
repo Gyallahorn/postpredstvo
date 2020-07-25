@@ -1,3 +1,9 @@
+List<Map<String, dynamic>> difficults = [
+  {"diff": "Легкий", "name": "Москва", "long": "20 Км"},
+  {"diff": "Средний", "name": "Москва и область", "long": "107 Км"},
+  {"diff": "Сложный", "name": "Москва,область,Питер", "long": "450 км"},
+];
+
 List<Map<String, dynamic>> objectsList = [
   {
     "lng": 62.03484,

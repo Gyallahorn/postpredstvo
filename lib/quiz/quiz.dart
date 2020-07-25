@@ -1,7 +1,10 @@
+import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:pospredsvto/quiz/quizes.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:http/http.dart' as http;
 
 bool isNotCalled = true;
 bool isTapped = false;
@@ -70,7 +73,27 @@ class _QuizState extends State<Quiz> {
 
   void setScore() async {
     SharedPreferences score = await SharedPreferences.getInstance();
+    SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+
     score.setString('testScore', finalScore.toString());
+    var token = sharedPreferences.getString('token');
+
+    var jsonResponse;
+    print("User token:" + token);
+    if (token != null) {
+      var response = await http.patch(
+        'http://192.168.1.38:4000/api/user/updateTest',
+        body: {"test": finalScore.toString()},
+        headers: {
+          'Authorization': 'Bearer $token',
+        },
+      );
+
+      jsonResponse = json.decode(response.body);
+      if (jsonResponse["msg"] == "success") {
+        print("Success");
+      }
+    }
   }
 
 //next question

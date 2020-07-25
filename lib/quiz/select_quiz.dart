@@ -7,7 +7,9 @@ class SelectQuiz extends StatelessWidget {
     return Material(
       child: Column(
         children: <Widget>[
-SizedBox(height: 20,),
+          SizedBox(
+            height: 20,
+          ),
           Container(
             padding: EdgeInsets.only(left: 15),
             alignment: Alignment.centerLeft,
@@ -48,7 +50,7 @@ SizedBox(height: 20,),
                         SizedBox(
                           height: 25,
                         ),
-                        Text('Название первого теста')
+                        Center(child: Text('Название первого теста'))
                       ],
                     ),
                   ),

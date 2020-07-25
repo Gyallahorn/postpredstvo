@@ -1,6 +1,11 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:pospredsvto/cabinet/cabinet_edit.dart';
 import 'package:pospredsvto/map/marker_list.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:http/http.dart' as http;
 
 class MyCabinet extends StatefulWidget {
   @override
@@ -12,87 +17,56 @@ class _MyCabinetState extends State<MyCabinet> {
   var markerList = MarkerList();
   var markersList;
   var listOfPlaces = List<Widget>();
+  var profileGetted = false;
+  var token;
+
+  var name = "Имя пользователя";
+  var city = "Город";
   getStringValue() async {
     SharedPreferences score = await SharedPreferences.getInstance();
+    SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
     String scoreValue = score.getString('testScore') ?? "0";
-    print(scoreValue.toString() + "1 score");
-    setState(() {
-      testScore = scoreValue;
-    });
-    print(testScore.toString() + "3 score");
-  }
 
-  void listBuilder() async {
-    for (int i = 0; i < markersList.length; i++) {
-      listOfPlaces.add(GestureDetector(
-        onTap: () => {},
-        child: Column(
-          children: <Widget>[
-            Row(
-              children: <Widget>[
-                SizedBox(
-                  width: 15,
-                ),
-                CircleAvatar(
-                  radius: 30,
-                  backgroundColor: Colors.white,
-                  child: Icon(
-                    Icons.location_on,
-                    color: Colors.grey,
-                  ),
-                ),
-                SizedBox(
-                  width: 12,
-                ),
-                Column(
-                  children: <Widget>[
-                    Text(
-                      markersList[i]["name"],
-                      style:
-                          TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
-                    ),
-                    SizedBox(
-                      height: 4,
-                    ),
-                    Text(
-                      markersList[i]["street"],
-                      style: TextStyle(fontSize: 13, color: Colors.grey[400]),
-                    )
-                  ],
-                )
-              ],
-            ),
-            SizedBox(
-              height: 14,
-            )
-          ],
-        ),
-      ));
-    }
+    token = sharedPreferences.getString('token');
+    name = sharedPreferences.getString('name');
+    city = sharedPreferences.getString('city');
+    print(city);
+    setState(() {
+      city = city;
+      name = name;
+      testScore = scoreValue.toString();
+    });
+    print(scoreValue.toString() + " score");
+    print(testScore.toString() + "test score");
   }
 
   @override
-  void initState() {
-    markersList = markerList.markersList;
-
-    getStringValue();
-
-    listBuilder();
-
-    super.initState();
+  Future<String> _sendRequestProfile() async {
+    var jsonResponse;
+    print("User token:" + token);
+    if (token != null) {
+      var response = await http.get(
+        'http://192.168.1.38:4000/api/user/getTestResults',
+        headers: {
+          'Authorization': 'Bearer $token',
+        },
+      );
+      profileGetted = true;
+      jsonResponse = json.decode(response.body);
+      if (jsonResponse["msg"] == "success") {
+        print("NAME!" + jsonResponse["user"].name);
+      }
+    }
   }
 
   Widget build(BuildContext context) {
+    getStringValue();
+    if (!profileGetted) {
+      _sendRequestProfile();
+    }
     return Material(
       child: Column(
         children: <Widget>[
-          Container(
-            width: 50,
-            child: Divider(
-              thickness: 5,
-              color: Colors.grey,
-            ),
-          ),
           SizedBox(
             height: 17,
           ),
@@ -114,18 +88,20 @@ class _MyCabinetState extends State<MyCabinet> {
                     height: 15,
                     width: 81,
                   ),
-                  Icon(Icons.edit)
+                  GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => MyCabinetEdit()));
+                      },
+                      child: Icon(Icons.edit))
                 ],
               ),
               SizedBox(
                 height: 16,
               ),
-              Center(
-                child: Text(
-                  'Имя Пользовотеля',
-                  style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
-                ),
-              ),
+              Center(child: Text(name)),
               SizedBox(
                 height: 17,
               ),
@@ -137,10 +113,7 @@ class _MyCabinetState extends State<MyCabinet> {
                         Icons.location_on,
                         color: Colors.grey,
                       ),
-                      Text(
-                        'Город',
-                        style: TextStyle(fontSize: 15),
-                      )
+                      Text(city),
                     ],
                   )),
               SizedBox(
