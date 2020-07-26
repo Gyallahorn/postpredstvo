@@ -53,8 +53,7 @@ class _MyObjectListState extends State<MyObjectList> {
               height: 200,
               decoration: BoxDecoration(
                 image: DecorationImage(
-                    image: NetworkImage(
-                        "https://encrypted-tbn0.gstatic.com/images?q=tbn%3AANd9GcQXBKqhH8VS4qdb6Lcu-6SOe0qKxQmZo3pJvQ&usqp=CAU"),
+                    image: NetworkImage(difficults[index]["link"].toString()),
                     fit: BoxFit.fitWidth),
               ),
             ),

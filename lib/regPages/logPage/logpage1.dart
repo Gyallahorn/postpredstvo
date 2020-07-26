@@ -3,15 +3,28 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:pospredsvto/mainFrame.dart';
+import 'package:pospredsvto/network/url_helper.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 
-class LogPage1 extends StatelessWidget {
+class LogPage1 extends StatefulWidget {
+  @override
+  _LogPage1State createState() => _LogPage1State();
+}
+
+class _LogPage1State extends State<LogPage1> {
   var emailController = TextEditingController();
+
   var passwordController = TextEditingController();
+
   String email;
+
   bool log;
+
   String token;
+
+  bool _onLoad = false;
+
   @override
   Widget build(BuildContext context) {
     void wrongData() {
@@ -67,7 +80,7 @@ class LogPage1 extends StatelessWidget {
       var jsonResponse;
 
       var response = await http.post(
-        'http://192.168.1.38:4000/api/user/signin',
+        urlHost + '/api/user/signin',
         body: {'email': email, 'password': passwrod},
       );
       jsonResponse = json.decode(response.body);
@@ -124,6 +137,9 @@ class LogPage1 extends StatelessWidget {
               padding: EdgeInsets.fromLTRB(0, 0, 15, 0),
               child: InkWell(
                   onTap: () {
+                    setState(() {
+                      _onLoad = true;
+                    });
                     _sendRequest(emailController.text, passwordController.text);
                   },
                   child: Text('Далее',
@@ -162,6 +178,12 @@ class LogPage1 extends StatelessWidget {
                     border: UnderlineInputBorder(),
                     hintText: 'Мин 8 символов'),
               ),
+            ),
+            SizedBox(
+              height: 20,
+            ),
+            Center(
+              child: _onLoad ? CircularProgressIndicator() : SizedBox(),
             )
           ],
         ),

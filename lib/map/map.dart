@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_map_polyline/google_map_polyline.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:pospredsvto/map/map_test.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
 import 'dart:math';
 
@@ -36,6 +35,9 @@ class _MapFrameState extends State<MapFrame> {
   var routeProgress;
   var menuPanelContent;
   var distance = "выберите маркер";
+  var visitedPlases = [];
+  var _visitedPlasesCount = 0;
+  double _maxHeight = 190;
 
   int _polylineCount = 1;
   List<Marker> allMarkers = [];
@@ -67,6 +69,7 @@ class _MapFrameState extends State<MapFrame> {
   var makeRoutePanel;
   var markerAbout;
   bool routeButtonPressed = false;
+  bool _slidingPanelClosed = false;
   //Map
   GoogleMapController myMapController;
   // final Set<Marker> _markers = new Set();
@@ -149,7 +152,7 @@ class _MapFrameState extends State<MapFrame> {
             ),
           ),
           SizedBox(
-            height: 17,
+            height: 35,
           ),
           Container(
             alignment: Alignment.centerLeft,
@@ -201,17 +204,6 @@ class _MapFrameState extends State<MapFrame> {
               ],
             ),
           ),
-          SizedBox(
-            height: 17,
-          ),
-          Container(
-            padding: EdgeInsets.only(left: 15, right: 15),
-            child: (!routeButtonPressed) ? makeRouteButton0 : makeRouteButton2,
-            height: 60,
-          ),
-          SizedBox(
-            height: 17,
-          ),
           Container(
             padding: EdgeInsets.only(left: 15),
             alignment: Alignment.centerLeft,
@@ -222,7 +214,7 @@ class _MapFrameState extends State<MapFrame> {
             ),
           ),
           SizedBox(
-            height: 16,
+            height: 5,
           ),
           Container(
             padding: EdgeInsets.only(left: 15),
@@ -231,7 +223,28 @@ class _MapFrameState extends State<MapFrame> {
               markers[i]["desc"],
               style: TextStyle(color: Colors.grey, fontSize: 13),
             ),
-          )
+          ),
+          SizedBox(
+            height: 20,
+          ),
+          FlatButton.icon(
+              onPressed: () {
+                if (distanceBetwee(markers[i]["lng"], markers[i]["ltd"],
+                        position.latitude, position.longitude) <
+                    200) {
+                  visitedPlases.add(i);
+                  print(visitedPlases.toString());
+                  for (int i = 0; i < visitedPlases.length; i++) {
+                    if (visitedPlases[i] != visitedPlases[i + 1]) {
+                      setState(() {
+                        _visitedPlasesCount++;
+                      });
+                    }
+                  }
+                }
+              },
+              icon: Icon(Icons.done_outline),
+              label: Text("Я здесь"))
         ],
       );
     });
@@ -333,7 +346,7 @@ class _MapFrameState extends State<MapFrame> {
             ),
             Center(
               child: Text(
-                "0 из ${markers.length}",
+                "${_visitedPlasesCount} из ${markers.length}",
                 style: TextStyle(fontSize: 30, color: Colors.black),
               ),
             ),
@@ -375,11 +388,9 @@ class _MapFrameState extends State<MapFrame> {
               choosedMarker = i;
               distance = dist.toString() + " Км";
             }
-//            makeRouteButton1Builder(i, distM);
-
-            // routeBuilder(i, makeRouteButton2, makeRouteButton1);
             markerAboutBuilder(i);
             panelContent = markerAbout;
+            _maxHeight = 300;
             panelController.open();
           }),
         ));
@@ -406,7 +417,7 @@ class _MapFrameState extends State<MapFrame> {
 //    setFloatingButtons();
     setMenuPanelContent();
     listOfFloatButtons = listOfFloatButtons2;
-    panelContent = menuPanelContent;
+
     addMarkers();
     super.initState();
   }
@@ -422,6 +433,7 @@ class _MapFrameState extends State<MapFrame> {
 
     if (!listCalled) {
       setPolylines();
+      panelContent = routeProgress;
 
 //      listBuilder();
       listCalled = true;
@@ -431,7 +443,6 @@ class _MapFrameState extends State<MapFrame> {
     if (!menuPressed) {
       //set my positon
       getCurrentLocation();
-      setMenuPanelContent();
 
       return Material(
         child: Scaffold(
@@ -439,13 +450,18 @@ class _MapFrameState extends State<MapFrame> {
               title: Text("Уличное искуство"),
             ),
             body: SlidingUpPanel(
+              onPanelClosed: () {
+                setState(() {
+                  panelContent = routeProgress;
+                });
+              },
               controller: panelController,
               borderRadius: radius,
               boxShadow: boxShad,
               minHeight: 60,
-              maxHeight: 190,
+              maxHeight: _maxHeight,
               //Panel
-              panel: routeProgress,
+              panel: panelContent,
               //MainScreen
               body: Scaffold(
                 floatingActionButton: Column(children: listOfFloatButtons),

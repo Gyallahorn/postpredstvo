@@ -3,7 +3,6 @@ import 'package:pospredsvto/cabinet/cabinet.dart';
 import 'package:pospredsvto/main/mainFrames/ojects_list.dart';
 import 'package:pospredsvto/quiz/select_quiz.dart';
 
-import 'map/map_test.dart';
 import 'navdrawer.dart';
 
 class MainFrame extends StatelessWidget {

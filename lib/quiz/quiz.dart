@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:pospredsvto/network/url_helper.dart';
 import 'package:pospredsvto/quiz/quizes.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
@@ -82,7 +83,7 @@ class _QuizState extends State<Quiz> {
     print("User token:" + token);
     if (token != null) {
       var response = await http.patch(
-        'http://192.168.1.38:4000/api/user/updateTest',
+        urlHost + '/api/user/updateTest',
         body: {"test": finalScore.toString()},
         headers: {
           'Authorization': 'Bearer $token',

@@ -3,6 +3,7 @@ import 'dart:ffi';
 
 import 'package:flutter/material.dart';
 import 'package:pospredsvto/mainFrame.dart';
+import 'package:pospredsvto/network/url_helper.dart';
 import 'package:pospredsvto/regPages/logPage/logpage1.dart';
 import 'package:pospredsvto/regPages/regPage/regpage2.dart';
 import 'package:http/http.dart' as http;
@@ -49,7 +50,7 @@ class _RegPage1State extends State<RegPage1> {
     SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
 
     var jsonResponse;
-    var response = await http.post('http://192.168.1.38:4000/api/user/signup',
+    var response = await http.post(urlHost + '/api/user/signup',
         body: {'email': email, 'password': passwrod});
 
     if (response.statusCode == 200) {

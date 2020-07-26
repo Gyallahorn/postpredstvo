@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:pospredsvto/cabinet/cabinet_edit.dart';
 import 'package:pospredsvto/map/marker_list.dart';
+import 'package:pospredsvto/network/url_helper.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 
@@ -13,12 +14,14 @@ class MyCabinet extends StatefulWidget {
 }
 
 class _MyCabinetState extends State<MyCabinet> {
+  File _image;
   var testScore = "0";
   var markerList = MarkerList();
   var markersList;
   var listOfPlaces = List<Widget>();
   var profileGetted = false;
   var token;
+  var imagePath;
 
   var name = "Имя пользователя";
   var city = "Город";
@@ -26,15 +29,17 @@ class _MyCabinetState extends State<MyCabinet> {
     SharedPreferences score = await SharedPreferences.getInstance();
     SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
     String scoreValue = score.getString('testScore') ?? "0";
-
+    imagePath = sharedPreferences.getString('image');
     token = sharedPreferences.getString('token');
     name = sharedPreferences.getString('name');
     city = sharedPreferences.getString('city');
+
     print(city);
     setState(() {
       city = city;
       name = name;
       testScore = scoreValue.toString();
+      _image = File(imagePath);
     });
     print(scoreValue.toString() + " score");
     print(testScore.toString() + "test score");
@@ -46,16 +51,14 @@ class _MyCabinetState extends State<MyCabinet> {
     print("User token:" + token);
     if (token != null) {
       var response = await http.get(
-        'http://192.168.1.38:4000/api/user/getTestResults',
+        urlHost + '/api/user/getTestResults',
         headers: {
           'Authorization': 'Bearer $token',
         },
       );
       profileGetted = true;
       jsonResponse = json.decode(response.body);
-      if (jsonResponse["msg"] == "success") {
-        print("NAME!" + jsonResponse["user"].name);
-      }
+      if (jsonResponse["msg"] == "success") {}
     }
   }
 
@@ -78,12 +81,15 @@ class _MyCabinetState extends State<MyCabinet> {
                     width: 165,
                   ),
                   Container(
-                    width: 86,
-                    height: 86,
-                    child: CircleAvatar(
-                      backgroundColor: Colors.blue,
-                    ),
-                  ),
+                      width: 86,
+                      height: 86,
+                      child: _image == null
+                          ? CircleAvatar(
+                              backgroundColor: Colors.blue,
+                            )
+                          : CircleAvatar(
+                              backgroundImage: FileImage(_image),
+                            )),
                   SizedBox(
                     height: 15,
                     width: 81,

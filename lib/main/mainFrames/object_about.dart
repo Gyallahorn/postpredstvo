@@ -155,7 +155,7 @@ class _ObjectAboutState extends State<ObjectAbout> {
                   decoration: BoxDecoration(
                     image: DecorationImage(
                         image: NetworkImage(
-                            "https://encrypted-tbn0.gstatic.com/images?q=tbn%3AANd9GcQXBKqhH8VS4qdb6Lcu-6SOe0qKxQmZo3pJvQ&usqp=CAU"),
+                            difficults[widget.index]["link"].toString()),
                         fit: BoxFit.fill),
                   ),
                 ),

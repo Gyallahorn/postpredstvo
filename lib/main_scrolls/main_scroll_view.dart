@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:pospredsvto/main/destinations.dart';
+
 import 'package:pospredsvto/map/map.dart';
 
 class MainScrollMenu extends StatelessWidget {

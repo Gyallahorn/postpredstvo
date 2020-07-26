@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:pospredsvto/map/marker_list.dart';
+import 'package:pospredsvto/network/url_helper.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
@@ -23,6 +24,7 @@ class _MyCabinetEditState extends State<MyCabinetEdit> {
   var listOfPlaces = List<Widget>();
   var token;
   var infoSaved = false;
+  bool _onLoad = false;
 
   getStringValue() async {
     SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
@@ -79,7 +81,7 @@ class _MyCabinetEditState extends State<MyCabinetEdit> {
       print("both fields is ok");
       if (token != null) {
         var response = await http.post(
-          'http://192.168.1.38:4000/api/user/editProfile',
+          urlHost + '/api/user/editProfile',
           body: {"city": city, "name": name},
           headers: {
             'Authorization': 'Bearer $token',
@@ -91,19 +93,25 @@ class _MyCabinetEditState extends State<MyCabinetEdit> {
           saveUserData(name, city);
         } else {
           networkTrouble();
+          setState(() {
+            _onLoad = false;
+          });
         }
       }
     } else {
       print("fill field ples");
-
+      setState(() {
+        _onLoad = false;
+      });
       fillBothFields();
     }
   }
 
   cameraConnect() async {
     print('Picker is Called');
+    SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
     final pickedFile = await picker.getImage(source: ImageSource.camera);
-
+    sharedPreferences.setString('image', pickedFile.path);
     setState(() {
       _image = File(pickedFile.path);
     });
@@ -116,7 +124,7 @@ class _MyCabinetEditState extends State<MyCabinetEdit> {
       child: Column(
         children: <Widget>[
           SizedBox(
-            height: 17,
+            height: 40,
           ),
           Expanded(
             child: ListView(children: <Widget>[
@@ -131,8 +139,10 @@ class _MyCabinetEditState extends State<MyCabinetEdit> {
                         width: 86,
                         height: 86,
                         child: _image == null
-                            ? Text('Фото отсутвует')
-                            : Image.file(_image),
+                            ? Center(child: Text('Фото отсутвует'))
+                            : CircleAvatar(
+                                backgroundImage: FileImage(_image),
+                              ),
                       ),
                       FloatingActionButton(
                         backgroundColor: Colors.green,
@@ -180,9 +190,22 @@ class _MyCabinetEditState extends State<MyCabinetEdit> {
               SizedBox(
                 height: 24,
               ),
-              FlatButton(
-                  onPressed: () => {_sendRequestEditProfile()},
-                  child: Text("Сохранить")),
+              Center(
+                child: _onLoad
+                    ? CircularProgressIndicator()
+                    : Container(
+                        width: 120,
+                        child: FlatButton(
+                            color: Colors.grey,
+                            onPressed: () {
+                              setState(() {
+                                _onLoad = true;
+                              });
+                              _sendRequestEditProfile();
+                            },
+                            child: Text("Сохранить")),
+                      ),
+              ),
               SizedBox(
                 height: 29,
               )
