@@ -37,6 +37,23 @@ class _RegPage1State extends State<RegPage1> {
         });
   }
 
+  void shortPassword() {
+    showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text("Ошибка"),
+            content: Text("Слишком легкий пароль"),
+            actions: <Widget>[
+              FlatButton(
+                child: Text("Закрыть"),
+                onPressed: () => {Navigator.of(context).pop()},
+              )
+            ],
+          );
+        });
+  }
+
   var _status;
 
   var _body;
@@ -103,7 +120,10 @@ class _RegPage1State extends State<RegPage1> {
               padding: EdgeInsets.fromLTRB(0, 0, 15, 0),
               child: InkWell(
                   onTap: () {
-                    _sendRequest(emailController.text, passwordController.text);
+                    if (passwordController.text.length > 7) {
+                      _sendRequest(
+                          emailController.text, passwordController.text);
+                    } else {}
                   },
                   child: Text('Далее',
                       style: TextStyle(

@@ -1,8 +1,14 @@
+import 'dart:convert';
+
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_map_polyline/google_map_polyline.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:pospredsvto/network/url_helper.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:http/http.dart' as http;
+
 import 'package:sliding_up_panel/sliding_up_panel.dart';
 import 'dart:math';
 
@@ -35,7 +41,7 @@ class _MapFrameState extends State<MapFrame> {
   var routeProgress;
   var menuPanelContent;
   var distance = "выберите маркер";
-  var visitedPlases = [];
+  List visitedPlases = [];
   var _visitedPlasesCount = 0;
   double _maxHeight = 190;
 
@@ -60,6 +66,7 @@ class _MapFrameState extends State<MapFrame> {
   var listOfPlaces = List<Widget>();
   var listOfFloatButtons2 = List<Widget>();
   var listOfFloatButtons1 = List<Widget>();
+  SharedPreferences sharedPreferences;
   var listOfFloatButtons = List<Widget>();
   var makeRouteButton0;
   var choosedMarker;
@@ -70,6 +77,7 @@ class _MapFrameState extends State<MapFrame> {
   var markerAbout;
   bool routeButtonPressed = false;
   bool _slidingPanelClosed = false;
+  var places;
   //Map
   GoogleMapController myMapController;
   // final Set<Marker> _markers = new Set();
@@ -82,7 +90,12 @@ class _MapFrameState extends State<MapFrame> {
   var markList = MarkerList();
   var markers;
   LatLng startPoint;
-
+  var token;
+  bool profileGetted = false;
+  var diffPlaces;
+  var diffUrl;
+  bool _flag = true;
+  bool _onLoad = false;
 //get my position
   void getGeo() async {
     Position position = await Geolocator()
@@ -102,19 +115,66 @@ class _MapFrameState extends State<MapFrame> {
     });
   }
 
+  void success() {
+    showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text("Поздравляю!"),
+            content: Text("Место посещено"),
+            actions: <Widget>[
+              FlatButton(
+                child: Text("Ок"),
+                onPressed: () {
+                  panelController.close();
+                  Navigator.of(context).pop();
+                },
+              )
+            ],
+          );
+        });
+  }
+
+  void tooFar() {
+    showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text(""),
+            content: Text("Вы слишком далеко"),
+            actions: <Widget>[
+              FlatButton(
+                child: Text("Ок"),
+                onPressed: () {
+                  panelController.close();
+                  Navigator.of(context).pop();
+                },
+              )
+            ],
+          );
+        });
+  }
+
   void getDiffMarkers() async {
     diff = widget.diff;
+
     print("difficult" + diff.toString());
     if (diff == 0) {
       markers = markList.easyMarkersList;
       startPoint = LatLng(55.7487443, 37.607089);
+      diffPlaces = "e_places";
+      diffUrl = "Easy";
     }
     if (diff == 1) {
       markers = markList.normalMarkersList;
       startPoint = LatLng(55.7487443, 37.607089);
+      diffPlaces = "n_places";
+      diffUrl = "Norm";
     } else {
       markers = markList.hardMarkersList;
       startPoint = LatLng(55.7487443, 37.607089);
+      diffPlaces = "h_places";
+      diffUrl = "Hard";
     }
   }
 
@@ -137,6 +197,84 @@ class _MapFrameState extends State<MapFrame> {
         cos((lat2 - lat1) * pi) / 2 +
         cos(lat1 * pi) * cos(lat2 * pi) * (1 - cos((lon2 - lon1) * pi)) / 2;
     return 12742 * asin(sqrt(a));
+  }
+  // Get Locations
+
+  @override
+  Future<String> _sendRequestPlaces() async {
+    var jsonResponse;
+    print("User token:" + token.toString());
+    if (token != null) {
+      var response = await http.get(
+        urlHost + '/api/user/getLocations',
+        headers: {
+          'Authorization': 'Bearer $token',
+        },
+      );
+      profileGetted = true;
+      jsonResponse = json.decode(response.body);
+      if (jsonResponse["msg"] == "success") {
+        if (diffUrl == "Easy") {
+          setState(() {
+            _visitedPlasesCount = jsonResponse["easy"];
+          });
+        }
+        if (diffUrl == "Norm") {
+          setState(() {
+            _visitedPlasesCount = jsonResponse["norm"];
+            print(_visitedPlasesCount);
+          });
+        }
+        if (diff == "Hard") {
+          setState(() {
+            _visitedPlasesCount = jsonResponse["hard"];
+          });
+        }
+      } else {
+        print("null!!!");
+      }
+    }
+    setMenuPanelContent();
+  }
+//Post locations
+
+  Future<String> _sendRequestUpdateLocations() async {
+    var jsonResponse;
+    print("User token:" + token);
+    print(visitedPlases);
+    var vP = visitedPlases.toString();
+    print(vP + " Sring");
+
+    if (token != null) {
+      var response = await http.post(
+        urlHost + '/api/user/update' + diffUrl + 'Locations',
+        body: {"places": vP},
+        headers: {
+          'Authorization': 'Bearer $token',
+        },
+      );
+
+      jsonResponse = json.decode(response.body);
+      if (jsonResponse["msg"] == "success") {
+        setState(() {
+          _onLoad = false;
+          _flag = true;
+        });
+        success();
+        print("Success");
+      } else {
+        print("error womething went wrong");
+      }
+    }
+  }
+
+  getVisitedPlaces() {
+    if (visitedPlases.length < 2) {
+      print(markList.hardMarkersList.length.toString());
+      for (int i = 0; i < markList.hardMarkersList.length; i++) {
+        visitedPlases.add(0);
+      }
+    }
   }
 
   markerAboutBuilder(int i) {
@@ -231,19 +369,19 @@ class _MapFrameState extends State<MapFrame> {
               onPressed: () {
                 if (distanceBetwee(markers[i]["lng"], markers[i]["ltd"],
                         position.latitude, position.longitude) <
-                    200) {
-                  visitedPlases.add(i);
-                  print(visitedPlases.toString());
-                  for (int i = 0; i < visitedPlases.length; i++) {
-                    if (visitedPlases[i] != visitedPlases[i + 1]) {
-                      setState(() {
-                        _visitedPlasesCount++;
-                      });
-                    }
-                  }
+                    0.2) {
+                  setState(() {
+                    visitedPlases[i] = 1;
+                    _onLoad = true;
+                    _sendRequestUpdateLocations();
+                  });
+                } else {
+                  tooFar();
                 }
               },
-              icon: Icon(Icons.done_outline),
+              icon: !_onLoad
+                  ? Icon(Icons.done_outline)
+                  : CircularProgressIndicator(),
               label: Text("Я здесь"))
         ],
       );
@@ -346,7 +484,7 @@ class _MapFrameState extends State<MapFrame> {
             ),
             Center(
               child: Text(
-                "${_visitedPlasesCount} из ${markers.length}",
+                "${_visitedPlasesCount.toString()} из ${markers.length}",
                 style: TextStyle(fontSize: 30, color: Colors.black),
               ),
             ),
@@ -406,6 +544,11 @@ class _MapFrameState extends State<MapFrame> {
     });
   }
 
+  void getToken() async {
+    SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+    token = sharedPreferences.getString('token');
+  }
+
   @override
   void initState() {
     getGeo();
@@ -423,8 +566,12 @@ class _MapFrameState extends State<MapFrame> {
   }
 
   Widget build(BuildContext context) {
+    getVisitedPlaces();
+    getToken();
+    _sendRequestPlaces();
     getDiffMarkers();
     getGeo();
+
     void onMapCreated(GoogleMapController controller) async {
       setState(() {
         myMapController = controller;
@@ -435,7 +582,7 @@ class _MapFrameState extends State<MapFrame> {
       setPolylines();
       panelContent = routeProgress;
 
-//      listBuilder();
+      //      listBuilder();
       listCalled = true;
     } else {
       print('listAlredyCalled');
