@@ -16,7 +16,9 @@ import 'marker_list.dart';
 
 class MapFrame extends StatefulWidget {
   final int diff;
-  const MapFrame(this.diff);
+  final int index;
+  final Position position;
+  const MapFrame(this.diff, this.index, this.position);
 
   @override
   _MapFrameState createState() => _MapFrameState();
@@ -30,6 +32,7 @@ GoogleMapPolyline googleMapPolyline =
 
 class _MapFrameState extends State<MapFrame> {
   var diff;
+
   int i = 0;
   var dist;
   var distM;
@@ -43,7 +46,8 @@ class _MapFrameState extends State<MapFrame> {
   var distance = "выберите маркер";
   List visitedPlases = [];
   var _visitedPlasesCount = 0;
-  double _maxHeight = 190;
+  double _maxHeight = 225;
+  bool routeMode = true;
 
   int _polylineCount = 1;
   List<Marker> allMarkers = [];
@@ -96,11 +100,6 @@ class _MapFrameState extends State<MapFrame> {
   var diffUrl;
   bool _flag = true;
   bool _onLoad = false;
-//get my position
-  void getGeo() async {
-    Position position = await Geolocator()
-        .getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
-  }
 
   getSomePoints(double lng, double ltd) async {
     print("getSomePoints called");
@@ -161,18 +160,15 @@ class _MapFrameState extends State<MapFrame> {
     print("difficult" + diff.toString());
     if (diff == 0) {
       markers = markList.easyMarkersList;
-      startPoint = LatLng(55.7487443, 37.607089);
       diffPlaces = "e_places";
       diffUrl = "Easy";
     }
     if (diff == 1) {
       markers = markList.normalMarkersList;
-      startPoint = LatLng(55.7487443, 37.607089);
       diffPlaces = "n_places";
       diffUrl = "Norm";
     } else {
       markers = markList.hardMarkersList;
-      startPoint = LatLng(55.7487443, 37.607089);
       diffPlaces = "h_places";
       diffUrl = "Hard";
     }
@@ -187,7 +183,6 @@ class _MapFrameState extends State<MapFrame> {
         width: 5);
     setState(() {
       _polylines[id] = polyline;
-      _polylineCount++;
     });
   }
 
@@ -304,7 +299,8 @@ class _MapFrameState extends State<MapFrame> {
                       shape: BoxShape.circle,
                       image: new DecorationImage(
                           fit: BoxFit.cover,
-                          image: new NetworkImage(markers[i]["img"]))),
+                          image:
+                              new NetworkImage(markers[widget.index]["img"]))),
                 ),
                 SizedBox(
                   width: 8,
@@ -318,7 +314,7 @@ class _MapFrameState extends State<MapFrame> {
                       width: 300,
                       padding: EdgeInsets.only(left: 10),
                       child: AutoSizeText(
-                        markers[i]["name"],
+                        markers[widget.index]["name"],
                         maxLines: 2,
                         style: TextStyle(
                             fontSize: 17, fontWeight: FontWeight.bold),
@@ -333,7 +329,7 @@ class _MapFrameState extends State<MapFrame> {
                       padding: EdgeInsets.only(left: 10),
                       alignment: Alignment.centerLeft,
                       child: AutoSizeText(
-                        markers[i]["street"],
+                        markers[widget.index]["street"],
                         style: TextStyle(fontSize: 15, color: Colors.grey),
                       ),
                     )
@@ -358,7 +354,7 @@ class _MapFrameState extends State<MapFrame> {
             padding: EdgeInsets.only(left: 15),
             alignment: Alignment.centerLeft,
             child: AutoSizeText(
-              markers[i]["desc"],
+              markers[widget.index]["desc"],
               style: TextStyle(color: Colors.grey, fontSize: 13),
             ),
           ),
@@ -367,11 +363,14 @@ class _MapFrameState extends State<MapFrame> {
           ),
           FlatButton.icon(
               onPressed: () {
-                if (distanceBetwee(markers[i]["lng"], markers[i]["ltd"],
-                        position.latitude, position.longitude) <
+                if (distanceBetwee(
+                        markers[widget.index]["lng"],
+                        markers[widget.index]["ltd"],
+                        position.latitude,
+                        position.longitude) <
                     0.2) {
                   setState(() {
-                    visitedPlases[i] = 1;
+                    visitedPlases[widget.index] = 1;
                     _onLoad = true;
                     _sendRequestUpdateLocations();
                   });
@@ -389,20 +388,21 @@ class _MapFrameState extends State<MapFrame> {
   }
 
   void setPolylines() async {
-    for (int i = 0; i < markers.length; i++) {
-      if (markers[i]["ltd"] == null) {
-        print("array is null");
-        break;
-      }
-
-      print("array found" + markers.toString());
-      List<LatLng> _coordinates =
-          await googleMapPolyline.getCoordinatesWithLocation(
-              origin: LatLng(markers[i]["lng"], markers[i]["ltd"]),
-              destination: LatLng(markers[i + 1]["lng"], markers[i + 1]["ltd"]),
-              mode: RouteMode.walking);
-      _addPolyline(_coordinates);
+    if (markers[widget.index]["ltd"] == null) {
+      print("array is null");
     }
+
+    print("array found");
+    List<LatLng> _coordinates =
+        await googleMapPolyline.getCoordinatesWithLocation(
+            origin: LatLng(position.latitude, position.longitude),
+            destination: LatLng(
+                markers[widget.index]["lng"], markers[widget.index]["ltd"]),
+            mode: routeMode ? RouteMode.walking : RouteMode.driving);
+    _addPolyline(_coordinates);
+    setState(() {
+      listCalled = true;
+    });
   }
 
   setMapButtons() {
@@ -438,6 +438,7 @@ class _MapFrameState extends State<MapFrame> {
     });
   }
 
+  // panel content
   setMenuPanelContent() {
     setState(() {
       routeProgress = Material(
@@ -496,6 +497,45 @@ class _MapFrameState extends State<MapFrame> {
                 "Текущие результаты",
                 style: TextStyle(color: Colors.blue),
               ),
+            ),
+            SizedBox(height: 10),
+            Row(
+              children: <Widget>[
+                SizedBox(
+                  width: 170,
+                ),
+                Center(
+                  child: Container(
+                    child: routeMode
+                        ? FlatButton(
+                            color: (Colors.grey),
+                            onPressed: () {
+                              _polylines.clear();
+                              setPolylines();
+                              setState(() {
+                                routeMode = false;
+                                listCalled = true;
+                              });
+                            },
+                            child: Row(
+                              children: <Widget>[Icon(Icons.directions_walk)],
+                            ))
+                        : FlatButton(
+                            color: Colors.grey,
+                            onPressed: () {
+                              _polylines.clear();
+                              setPolylines();
+                              setState(() {
+                                routeMode = true;
+                                listCalled = true;
+                              });
+                            },
+                            child: Row(
+                              children: <Widget>[Icon(Icons.directions_car)],
+                            )),
+                  ),
+                ),
+              ],
             )
           ],
         ),
@@ -505,44 +545,84 @@ class _MapFrameState extends State<MapFrame> {
 
   addMarkers() {
     setState(() {
-      for (int i = 0; i < markers.length; i++) {
+      allMarkers.add(Marker(
+        markerId: MarkerId(i.toString()),
+        draggable: false,
+        position:
+            LatLng(markers[widget.index]["lng"], markers[widget.index]["ltd"]),
+        onTap: () => setState(() {
+          zoom = 15;
+          //calc distance
+          dist = distanceBetwee(
+              markers[widget.index]["lng"],
+              markers[widget.index]["ltd"],
+              position.latitude,
+              position.longitude);
+          if (dist < 1.0) {
+            dist = dist * 1000;
+            dist = dist.round();
+            distM = dist;
+            choosedMarker = i;
+            distance = dist.toString() + " м";
+          } else {
+            dist = dist.round();
+            distM = dist * 1000;
+            choosedMarker = i;
+            distance = dist.toString() + " Км";
+          }
+          markerAboutBuilder(i);
+          panelContent = markerAbout;
+          _maxHeight = 300;
+          panelController.open();
+        }),
+      ));
+      print("marker added!");
+      i++;
+      if (position != null && !listCalled) {
         allMarkers.add(Marker(
           markerId: MarkerId(i.toString()),
           draggable: false,
-          position: LatLng(markers[i]["lng"], markers[i]["ltd"]),
-          onTap: () => setState(() {
-            //calc distance
-            dist = distanceBetwee(markers[i]["lng"], markers[i]["ltd"],
-                position.latitude, position.longitude);
-            if (dist < 1.0) {
-              dist = dist * 1000;
-              dist = dist.round();
-              distM = dist;
-              choosedMarker = i;
-              distance = dist.toString() + " м";
-            } else {
-              dist = dist.round();
-              distM = dist * 1000;
-              choosedMarker = i;
-              distance = dist.toString() + " Км";
-            }
-            markerAboutBuilder(i);
-            panelContent = markerAbout;
-            _maxHeight = 300;
-            panelController.open();
-          }),
+          icon: BitmapDescriptor.defaultMarkerWithHue(20),
+          position: LatLng(position.latitude, position.longitude),
         ));
-        print("marker added!");
+        setPolylines();
       }
     });
   }
 
-  void getCurrentLocation() async {
-    Position res = await Geolocator().getCurrentPosition();
-    setState(() {
-      position = res;
-    });
-  }
+  // addMarkers() {
+  //   setState(() {
+  //     for (int i = 0; i < markers.length; i++) {
+  //       allMarkers.add(Marker(
+  //         markerId: MarkerId(i.toString()),
+  //         draggable: false,
+  //         position: LatLng(markers[i]["lng"], markers[i]["ltd"]),
+  //         onTap: () => setState(() {
+  //           //calc distance
+  //           dist = distanceBetwee(markers[i]["lng"], markers[i]["ltd"],
+  //               position.latitude, position.longitude);
+  //           if (dist < 1.0) {
+  //             dist = dist * 1000;
+  //             dist = dist.round();
+  //             distM = dist;
+  //             choosedMarker = i;
+  //             distance = dist.toString() + " м";
+  //           } else {
+  //             dist = dist.round();
+  //             distM = dist * 1000;
+  //             choosedMarker = i;
+  //             distance = dist.toString() + " Км";
+  //           }
+  //           markerAboutBuilder(i);
+  //           panelContent = markerAbout;
+  //           _maxHeight = 300;
+  //           panelController.open();
+  //         }),
+  //       ));
+  //       print("marker added!");
+  //     }
+  //   });
+  // }
 
   void getToken() async {
     SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
@@ -551,18 +631,21 @@ class _MapFrameState extends State<MapFrame> {
 
   @override
   void initState() {
-    getGeo();
+    Geolocator()
+        .getCurrentPosition(desiredAccuracy: LocationAccuracy.high)
+        .then((res) {
+      setState(() {
+        position = res;
+        initState();
+      });
+    });
+
     getDiffMarkers();
-    getCurrentLocation();
+    panelContent = routeProgress;
 
     markList = new MarkerList();
     setMapButtons();
-//    setFloatingButtons();
-    setMenuPanelContent();
-    listOfFloatButtons = listOfFloatButtons2;
-
     addMarkers();
-    super.initState();
   }
 
   Widget build(BuildContext context) {
@@ -570,7 +653,7 @@ class _MapFrameState extends State<MapFrame> {
     getToken();
     _sendRequestPlaces();
     getDiffMarkers();
-    getGeo();
+    addMarkers();
 
     void onMapCreated(GoogleMapController controller) async {
       setState(() {
@@ -578,23 +661,14 @@ class _MapFrameState extends State<MapFrame> {
       });
     }
 
-    if (!listCalled) {
-      setPolylines();
-      panelContent = routeProgress;
-
-      //      listBuilder();
-      listCalled = true;
-    } else {
-      print('listAlredyCalled');
-    }
     if (!menuPressed) {
       //set my positon
-      getCurrentLocation();
+      markerAboutBuilder(i);
 
       return Material(
         child: Scaffold(
             appBar: AppBar(
-              title: Text("Уличное искуство"),
+              title: Text(markers[widget.index]["name"]),
             ),
             body: SlidingUpPanel(
               onPanelClosed: () {
@@ -616,7 +690,7 @@ class _MapFrameState extends State<MapFrame> {
                   myLocationButtonEnabled: true,
                   zoomGesturesEnabled: true,
                   initialCameraPosition: CameraPosition(
-                    target: startPoint,
+                    target: LatLng(position.latitude, position.longitude),
                     zoom: zoom,
                   ),
                   markers: Set<Marker>.of(allMarkers),

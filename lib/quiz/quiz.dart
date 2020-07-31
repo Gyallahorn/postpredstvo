@@ -14,17 +14,20 @@ var choosedAnswer = "";
 int group = 1;
 
 class Quiz extends StatefulWidget {
+  final int testNumber;
+  const Quiz(this.testNumber);
   @override
   _QuizState createState() => _QuizState();
 }
 
 var finalScore = 0;
 var questionNumber = 0;
-var quiz = new Quizes();
+var quiz;
 var answersWidgets = List<Widget>();
 
 class _QuizState extends State<Quiz> {
   var color = Colors.grey;
+  @override
 
   // init answers buttons
   void answersBuilder() async {
@@ -125,6 +128,24 @@ class _QuizState extends State<Quiz> {
 
   @override
   Widget build(BuildContext context) {
+    switch (widget.testNumber) {
+      case 0:
+        {
+          quiz = Quizes();
+        }
+        break;
+      case 1:
+        {
+          quiz = Quizes2();
+        }
+        break;
+      case 2:
+        {
+          quiz = Quizes3();
+        }
+        break;
+    }
+
     if (testEnded) {
       finalScore = 0;
       testEnded = false;
@@ -195,7 +216,7 @@ class _QuizState extends State<Quiz> {
 
 class Summary extends StatelessWidget {
   final int score;
-  var quiz = new Quizes();
+
   Summary({Key key, @required this.score}) : super(key: key);
   @override
   Widget build(BuildContext context) {

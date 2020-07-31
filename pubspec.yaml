@@ -36,6 +36,8 @@ dependencies:
   mongo_dart: ^0.3.6
   uuid: ^2.0.2
   image_picker: ^0.6.7
+  audioplayers: ^0.15.1
+  
   permission:
 
   
@@ -56,6 +58,7 @@ dev_dependencies:
 flutter:
   assets:
     - graphics/
+    - assets/
 
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
