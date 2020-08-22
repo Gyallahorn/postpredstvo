@@ -68,7 +68,7 @@ class SelectQuiz extends StatelessWidget {
                   ),
                 ),
                 SizedBox(
-                  width: 80,
+                  width: 60,
                 ),
                 Container(
                   color: Colors.transparent,

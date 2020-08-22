@@ -6,6 +6,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:pospredsvto/main/mainFrames/objects.dart';
 import 'package:pospredsvto/map/map.dart';
 import 'package:pospredsvto/map/marker_list.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ObjectAbout extends StatefulWidget {
@@ -36,6 +37,11 @@ class _ObjectAboutState extends State<ObjectAbout> {
     setState(() {
       position = res;
     });
+  }
+
+  @override
+  void dispose() {
+    audioPlayer.stop();
   }
 
   initPlayer() {
@@ -274,8 +280,7 @@ class _ObjectAboutState extends State<ObjectAbout> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) =>
-                                MapFrame(diff, index, position),
+                            builder: (context) => MapFrame(diff, index),
                           ),
                         );
                       },

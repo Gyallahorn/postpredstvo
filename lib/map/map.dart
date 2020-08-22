@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
+import 'package:location/location.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_map_polyline/google_map_polyline.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -17,8 +18,8 @@ import 'marker_list.dart';
 class MapFrame extends StatefulWidget {
   final int diff;
   final int index;
-  final Position position;
-  const MapFrame(this.diff, this.index, this.position);
+
+  const MapFrame(this.diff, this.index);
 
   @override
   _MapFrameState createState() => _MapFrameState();
@@ -32,7 +33,11 @@ GoogleMapPolyline googleMapPolyline =
 
 class _MapFrameState extends State<MapFrame> {
   var diff;
-
+  //location
+  Location location = new Location();
+  bool _serviceEnabled;
+  PermissionStatus _permissionGranted;
+  LocationData _locationData;
   int i = 0;
   var dist;
   var distM;
@@ -86,7 +91,8 @@ class _MapFrameState extends State<MapFrame> {
   GoogleMapController myMapController;
   // final Set<Marker> _markers = new Set();
   static const LatLng _mainLocation = const LatLng(25.69893, 32.6421);
-  static Position position;
+  Position position;
+  Position lposition;
   Widget _child;
   double zoom = 12;
   Position csreenPos;
@@ -100,6 +106,56 @@ class _MapFrameState extends State<MapFrame> {
   var diffUrl;
   bool _flag = true;
   bool _onLoad = false;
+
+  checkService() async* {
+    _serviceEnabled = await location.serviceEnabled();
+    if (!_serviceEnabled) {
+      _serviceEnabled = await location.requestService();
+      if (!_serviceEnabled) {
+        return;
+      }
+    }
+  }
+
+  checkPermissions() async* {
+    _permissionGranted = await location.hasPermission();
+    if (_permissionGranted == PermissionStatus.denied) {
+      _permissionGranted = await location.requestPermission();
+      if (_permissionGranted != PermissionStatus.granted) {
+        return;
+      }
+    }
+  }
+
+  getGeo() async {
+    if (position == null) {
+      position = await Geolocator().getLastKnownPosition();
+    }
+    position = await Geolocator().getCurrentPosition();
+    if (_flag) {
+      addMarkers();
+      setState(() {
+        _flag = false;
+      });
+    }
+  }
+
+  // _getCurrentLocation() async* {
+  //   _locationData = await location.getLocation();
+
+  //   // position = _locationData;
+  //   final Geolocator geolocator = Geolocator()..forceAndroidLocationManager;
+  //   geolocator.getCurrentPosition().then((Position pos) {
+  //     addMarkers();
+
+  //     setState(() {
+  //       position = pos;
+  //       print(position.toString());
+  //     });
+  //   }).catchError((e) {
+  //     print(e.toString());
+  //   });
+  // }
 
   getSomePoints(double lng, double ltd) async {
     print("getSomePoints called");
@@ -229,6 +285,8 @@ class _MapFrameState extends State<MapFrame> {
         print("null!!!");
       }
     }
+    SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+    sharedPreferences.setInt('vp', _visitedPlasesCount);
     setMenuPanelContent();
   }
 //Post locations
@@ -408,21 +466,24 @@ class _MapFrameState extends State<MapFrame> {
   setMapButtons() {
     setState(() {
       // map buttons
-      listOfFloatButtons2 = <Widget>[
+      listOfFloatButtons = <Widget>[
         SizedBox(
           height: 350,
         ),
         GestureDetector(
-          onTap: () => setState(() {
-            myMapController.animateCamera(
-              CameraUpdate.newCameraPosition(
-                CameraPosition(
-                  target: LatLng(position.latitude, position.longitude),
-                  zoom: 12,
+          onTap: () {
+            // _getCurrentLocation();
+            setState(() {
+              myMapController.animateCamera(
+                CameraUpdate.newCameraPosition(
+                  CameraPosition(
+                    target: LatLng(position.latitude, position.longitude),
+                    zoom: 12,
+                  ),
                 ),
-              ),
-            );
-          }),
+              );
+            });
+          },
           child: CircleAvatar(
             backgroundColor: Colors.white,
             child: Icon(
@@ -578,15 +639,15 @@ class _MapFrameState extends State<MapFrame> {
       ));
       print("marker added!");
       i++;
-      if (position != null && !listCalled) {
-        allMarkers.add(Marker(
-          markerId: MarkerId(i.toString()),
-          draggable: false,
-          icon: BitmapDescriptor.defaultMarkerWithHue(20),
-          position: LatLng(position.latitude, position.longitude),
-        ));
-        setPolylines();
-      }
+
+      print("My marker added!");
+      allMarkers.add(Marker(
+        markerId: MarkerId(i.toString()),
+        draggable: false,
+        icon: BitmapDescriptor.defaultMarkerWithHue(20),
+        position: LatLng(position.latitude, position.longitude),
+      ));
+      setPolylines();
     });
   }
 
@@ -631,76 +692,71 @@ class _MapFrameState extends State<MapFrame> {
 
   @override
   void initState() {
-    Geolocator()
-        .getCurrentPosition(desiredAccuracy: LocationAccuracy.high)
-        .then((res) {
-      setState(() {
-        position = res;
-        initState();
-      });
-    });
-
     getDiffMarkers();
-    panelContent = routeProgress;
-
-    markList = new MarkerList();
     setMapButtons();
-    addMarkers();
+    // _getCurrentLocation();
   }
 
   Widget build(BuildContext context) {
+    void onMapCreated(GoogleMapController controller) async {
+      setState(() {
+        myMapController = controller;
+        // _getCurrentLocation();
+      });
+    }
+
+    // _getCurrentLocation();
+    setMapButtons();
+    getGeo();
     getVisitedPlaces();
     getToken();
     _sendRequestPlaces();
     getDiffMarkers();
-    addMarkers();
 
-    void onMapCreated(GoogleMapController controller) async {
-      setState(() {
-        myMapController = controller;
-      });
-    }
+    panelContent = routeProgress;
 
-    if (!menuPressed) {
-      //set my positon
-      markerAboutBuilder(i);
+    //set my positon
+    markerAboutBuilder(i);
 
-      return Material(
-        child: Scaffold(
-            appBar: AppBar(
-              title: Text(markers[widget.index]["name"]),
-            ),
-            body: SlidingUpPanel(
-              onPanelClosed: () {
-                setState(() {
-                  panelContent = routeProgress;
-                });
-              },
-              controller: panelController,
-              borderRadius: radius,
-              boxShadow: boxShad,
-              minHeight: 60,
-              maxHeight: _maxHeight,
-              //Panel
-              panel: panelContent,
-              //MainScreen
-              body: Scaffold(
-                floatingActionButton: Column(children: listOfFloatButtons),
-                body: GoogleMap(
-                  myLocationButtonEnabled: true,
-                  zoomGesturesEnabled: true,
-                  initialCameraPosition: CameraPosition(
-                    target: LatLng(position.latitude, position.longitude),
+    return Material(
+      child: Scaffold(
+          appBar: AppBar(
+            title: Text(markers[widget.index]["name"]),
+          ),
+          body: SlidingUpPanel(
+            onPanelClosed: () {
+              setState(() {
+                panelContent = routeProgress;
+              });
+            },
+            controller: panelController,
+            borderRadius: radius,
+            boxShadow: boxShad,
+            minHeight: 60,
+            maxHeight: _maxHeight,
+            //Panel
+            panel: panelContent,
+            //MainScreen
+            body: Scaffold(
+              floatingActionButton: Column(children: listOfFloatButtons),
+              body: GoogleMap(
+                myLocationButtonEnabled: true,
+                zoomGesturesEnabled: true,
+                // initialCameraPosition: CameraPosition(
+                //   target: LatLng(, position.longitude),
+                //   zoom: zoom,
+                // ),
+                markers: Set<Marker>.of(allMarkers),
+                polylines: Set<Polyline>.of(_polylines.values),
+                mapType: MapType.normal,
+                onMapCreated: onMapCreated,
+                initialCameraPosition: CameraPosition(
                     zoom: zoom,
-                  ),
-                  markers: Set<Marker>.of(allMarkers),
-                  polylines: Set<Polyline>.of(_polylines.values),
-                  mapType: MapType.normal,
-                  onMapCreated: onMapCreated,
-                ),
+                    target: LatLng(markers[widget.index]["lng"],
+                        markers[widget.index]["ltd"])),
               ),
-            )),
-      );
-    }
+            ),
+          )),
+    );
   }
 }

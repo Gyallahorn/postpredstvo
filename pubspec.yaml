@@ -37,6 +37,7 @@ dependencies:
   uuid: ^2.0.2
   image_picker: ^0.6.7
   audioplayers: ^0.15.1
+  location: ^3.0.0
   
   permission:
 

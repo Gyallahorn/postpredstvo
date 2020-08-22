@@ -22,6 +22,7 @@ class _MyCabinetState extends State<MyCabinet> {
   var profileGetted = false;
   var token;
   var imagePath;
+  int vp;
 
   var name = "Имя пользователя";
   var city = "Город";
@@ -33,6 +34,7 @@ class _MyCabinetState extends State<MyCabinet> {
     token = sharedPreferences.getString('token');
     name = sharedPreferences.getString('name');
     city = sharedPreferences.getString('city');
+    vp = sharedPreferences.getInt('vp');
 
     print(city);
     setState(() {
@@ -131,7 +133,7 @@ class _MyCabinetState extends State<MyCabinet> {
                   children: <Widget>[
                     Column(
                       children: <Widget>[
-                        Text('0'),
+                        Text('${vp}'),
                         SizedBox(
                           height: 6,
                         ),
