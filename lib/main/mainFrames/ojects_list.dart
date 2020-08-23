@@ -1,12 +1,63 @@
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:pospredsvto/main/mainFrames/objects.dart';
+import 'package:pospredsvto/models/DifficultList.dart';
 import 'package:pospredsvto/network/url_helper.dart';
 import 'package:rating_bar/rating_bar.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
+import 'package:http/http.dart' as http;
 import 'object_about.dart';
+
+class Difficult {
+  final int id;
+  final String difficult;
+  final String difficult_name;
+  final String name;
+  final String long;
+  final String link;
+  Difficult(
+      {this.id,
+      this.difficult,
+      this.difficult_name,
+      this.name,
+      this.long,
+      this.link});
+  factory Difficult.fromJson(Map<String, dynamic> json) {
+    return Difficult(
+      id: json['id'],
+      difficult: json['difficult'],
+      difficult_name: json['difficult_name'],
+      name: json['name'],
+      long: json['long'],
+      link: json['link'],
+    );
+  }
+}
+
+Future<List<Difficult>> fetchDifficulties() async {
+  SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+  String token = sharedPreferences.getString('token');
+  print("User token:" + token);
+
+  final response = await http.get(
+    urlHost + '/api/user/getDifficulties/',
+    headers: {
+      'Authorization': 'Bearer $token',
+    },
+  );
+  if (response.statusCode == 200) {
+    return compute(parseDifficults, response.body);
+  } else {
+    throw Exception('Failed to load post');
+  }
+}
+
+List<Difficult> parseDifficults(String responseBody) {
+  final parsed = jsonDecode(responseBody).cast<Map<String, dynamic>>();
+  return parsed.map<Difficult>((json) => Difficult.fromJson(json)).toList();
+}
 
 class ObjectList extends StatelessWidget {
   @override
@@ -26,8 +77,43 @@ class _MyObjectListState extends State<MyObjectList> {
   var listOfObjects = List<Widget>();
   var jsonResponse;
   var token;
-
+  List<dynamic> list;
   get http => null;
+
+  @override
+  Widget build(BuildContext context) {
+    var futureBuilder = new FutureBuilder(
+        future: fetchDifficulties(),
+        builder: (BuildContext context, AsyncSnapshot snapshot) {
+          switch (snapshot.connectionState) {
+            case ConnectionState.none:
+            case ConnectionState.waiting:
+              return new Center(
+                child: CircularProgressIndicator(),
+              );
+            default:
+              if (snapshot.hasError) {
+                return new Text('Error:${snapshot.error}');
+              } else
+                return snapshot.hasData
+                    ? DifficultsList(
+                        difficults: snapshot.data,
+                      )
+                    : Center(
+                        child: CircularProgressIndicator(),
+                      );
+          }
+        });
+
+    return new Material(
+      child: futureBuilder,
+    );
+  }
+}
+
+class DifficultsList extends StatelessWidget {
+  final List<Difficult> difficults;
+  DifficultsList({Key key, this.difficults}) : super(key: key);
 
   void setDiff(int index) async {
     SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
@@ -35,36 +121,13 @@ class _MyObjectListState extends State<MyObjectList> {
     print(index);
   }
 
-  getStringValue() async {
-    SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
-    token = sharedPreferences.getString('token');
-  }
-
-  @override
-  Future<String> _getDifficulties() async {
-    print("User token:" + token);
-    if (token != null) {
-      var response = await http.get(
-        urlHost + '/api/user/getDifficulties/',
-        headers: {
-          'Authorization': 'Bearer $token',
-        },
-      );
-      jsonResponse = json.decode(response.body);
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
-    getStringValue();
-    _getDifficulties();
-//    listBuilder();
-
     return ListView.separated(
       physics: BouncingScrollPhysics(),
       scrollDirection: Axis.vertical,
       shrinkWrap: true,
-      itemCount: jsonResponse.length,
+      itemCount: difficults.length,
       itemBuilder: (BuildContext context, int index) {
         return (GestureDetector(
           onTap: () => {
@@ -81,7 +144,7 @@ class _MyObjectListState extends State<MyObjectList> {
               height: 200,
               decoration: BoxDecoration(
                 image: DecorationImage(
-                    image: NetworkImage(jsonResponse[index]["link"].toString()),
+                    image: NetworkImage(difficults[index].link.toString()),
                     fit: BoxFit.fitWidth),
               ),
             ),
@@ -104,9 +167,9 @@ class _MyObjectListState extends State<MyObjectList> {
                   Container(
                     width: 115,
                     child: Text(
-                      jsonResponse[index]["diff"].toString() +
+                      difficults[index].difficult.toString() +
                           " " +
-                          jsonResponse[index]["long"].toString(),
+                          difficults[index].long.toString(),
                     ),
                   ),
                   SizedBox(
