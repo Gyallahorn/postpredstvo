@@ -2,8 +2,6 @@ import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:pospredsvto/main/mainFrames/objects.dart';
-import 'package:pospredsvto/models/DifficultList.dart';
 import 'package:pospredsvto/network/url_helper.dart';
 import 'package:rating_bar/rating_bar.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -115,11 +113,11 @@ class DifficultsList extends StatelessWidget {
   final List<Difficult> difficults;
   DifficultsList({Key key, this.difficults}) : super(key: key);
 
-  void setDiff(int index) async {
-    SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
-    sharedPreferences.setInt('dif', index);
-    print(index);
-  }
+  // void setDiff(int index) async {
+  //   SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+  //   sharedPreferences.setInt('dif', index);
+  //   print("choosed:" + index.toString());
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -131,11 +129,11 @@ class DifficultsList extends StatelessWidget {
       itemBuilder: (BuildContext context, int index) {
         return (GestureDetector(
           onTap: () => {
-            setDiff(index),
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => ObjectAbout(index),
+                builder: (context) =>
+                    ObjectAbout(difficults[index].difficult_name),
               ),
             ),
           },

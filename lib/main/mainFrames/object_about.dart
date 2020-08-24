@@ -1,17 +1,79 @@
+import 'dart:async';
+import 'dart:convert';
+
 import 'package:audioplayers/audio_cache.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
+import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:pospredsvto/main/mainFrames/objects.dart';
 import 'package:pospredsvto/map/map.dart';
 import 'package:pospredsvto/map/marker_list.dart';
-import 'package:provider/provider.dart';
+import 'package:pospredsvto/network/url_helper.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+class Route {
+  final int id;
+  final double lng;
+  final double ltd;
+  final String name;
+  final String street;
+  final String img;
+  final String desc;
+  final String difficult;
+  Route(
+      {this.id,
+      this.lng,
+      this.ltd,
+      this.name,
+      this.street,
+      this.img,
+      this.desc,
+      this.difficult});
+  factory Route.fromJson(Map<String, dynamic> json) {
+    return Route(
+      id: json['id'],
+      lng: json['lng'],
+      ltd: json['ltd'],
+      name: json['name'],
+      street: json['street'],
+      img: json['img'],
+      desc: json['desc'],
+      difficult: json['difficult'],
+    );
+  }
+}
+
+Future<List<Route>> fetchRoutes(String difficult) async {
+  SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+  String token = sharedPreferences.getString('token');
+  print("User token:" + token);
+
+  final response = await http.get(
+    urlHost + '/api/user/getRoutes/' + '${difficult}',
+    headers: {
+      'Authorization': 'Bearer $token',
+    },
+  );
+  if (response.statusCode == 200) {
+    // var data = json.decode(response.body);
+    // var list = data.map<Route>((json) => Route.fromJson(json)).toList();
+
+    return compute(parseRoutes, response.body);
+  } else {
+    throw Exception('Failed to load post');
+  }
+}
+
+List<Route> parseRoutes(String responseBody) {
+  final parsed = jsonDecode(responseBody).cast<Map<String, dynamic>>();
+  return parsed.map<Route>((json) => Route.fromJson(json)).toList();
+}
+
 class ObjectAbout extends StatefulWidget {
-  final int index;
-  const ObjectAbout(this.index);
+  final String difficult;
+  const ObjectAbout(this.difficult);
   @override
   _ObjectAboutState createState() => _ObjectAboutState();
 }
@@ -32,13 +94,50 @@ void getDiff() async {
 }
 
 class _ObjectAboutState extends State<ObjectAbout> {
-  void getCurrentLocation() async {
-    Position res = await Geolocator().getCurrentPosition();
-    setState(() {
-      position = res;
-    });
-  }
+  // void getCurrentLocation() async {
+  //   Position res = await Geolocator().getCurrentPosition();
+  //   setState(() {
+  //     position = res;
+  //   });
+  // }
 
+  @override
+  Widget build(BuildContext context) {
+    var futureBuilder = new FutureBuilder(
+        future: fetchRoutes(widget.difficult),
+        builder: (BuildContext context, AsyncSnapshot snapshot) {
+          switch (snapshot.connectionState) {
+            case ConnectionState.none:
+            case ConnectionState.waiting:
+              return new Center(
+                child: CircularProgressIndicator(),
+              );
+            default:
+              if (snapshot.hasError) {
+                return new Text('Error:${snapshot.error}');
+              } else
+                return snapshot.hasData
+                    ? RoutesList(
+                        routes: snapshot.data,
+                      )
+                    : Center(child: CircularProgressIndicator());
+          }
+        });
+    return new Material(
+      child: futureBuilder,
+    );
+  }
+}
+
+class RoutesList extends StatefulWidget {
+  final List<Route> routes;
+  RoutesList({Key key, @required this.routes}) : super(key: key);
+
+  @override
+  _RoutesListState createState() => _RoutesListState();
+}
+
+class _RoutesListState extends State<RoutesList> {
   @override
   void dispose() {
     audioPlayer.stop();
@@ -47,16 +146,19 @@ class _ObjectAboutState extends State<ObjectAbout> {
   initPlayer() {
     audioPlayer = AudioPlayer();
     audioCache = AudioCache(fixedPlayer: audioPlayer);
+    // ignore: deprecated_member_use
     audioPlayer.durationHandler = (d) => setState(() {
           _duration = d;
         });
 
+    // ignore: deprecated_member_use
     audioPlayer.positionHandler = (p) => setState(() {
           _position = p;
         });
   }
 
   String localPathFile;
+
   play() async {
     audioCache.play('11.mp3');
     setState(() {
@@ -74,34 +176,12 @@ class _ObjectAboutState extends State<ObjectAbout> {
   @override
   void initState() {
     // TODO: implement initState
-    super.initState();
     initPlayer();
   }
 
   @override
   Widget build(BuildContext context) {
-    getCurrentLocation();
-    // getDiff();
-    diff = widget.index;
-    switch (widget.index) {
-      case 0:
-        {
-          diffOfList = markerList.easyMarkersList;
-          break;
-        }
-      case 1:
-        {
-          diffOfList = markerList.normalMarkersList;
-          break;
-        }
-      case 3:
-        {
-          diffOfList = markerList.hardMarkersList;
-          break;
-        }
-    }
-    print(diffOfList.length);
-
+    // TODO: implement build
     return WillPopScope(
       onWillPop: () async {
         return true;
@@ -128,7 +208,7 @@ class _ObjectAboutState extends State<ObjectAbout> {
           physics: BouncingScrollPhysics(),
           scrollDirection: Axis.vertical,
           shrinkWrap: true,
-          itemCount: diffOfList.length,
+          itemCount: widget.routes.length,
           itemBuilder: (BuildContext context, int index) {
             return GestureDetector(
               child: Column(
@@ -143,7 +223,7 @@ class _ObjectAboutState extends State<ObjectAbout> {
                       ),
                       Flexible(
                         child: Text(
-                          diffOfList[index]["name"],
+                          widget.routes[index].name,
                           style: TextStyle(
                               fontSize: 20, fontWeight: FontWeight.bold),
                         ),
@@ -255,7 +335,7 @@ class _ObjectAboutState extends State<ObjectAbout> {
                         decoration: BoxDecoration(
                           image: DecorationImage(
                               image: NetworkImage(
-                                  difficults[widget.index]["link"].toString()),
+                                  widget.routes[index].img.toString()),
                               fit: BoxFit.fill),
                         ),
                       ),
@@ -268,22 +348,22 @@ class _ObjectAboutState extends State<ObjectAbout> {
                     child: GestureDetector(
                       child: Container(
                         child: FlatButton(
-                            child: Text(
-                          "Начать",
-                          style: TextStyle(color: Colors.white),
-                        )),
+                          child: Text(
+                            "Начать",
+                            style: TextStyle(color: Colors.white),
+                          ),
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => MapFrame(diff, index),
+                              ),
+                            );
+                          },
+                        ),
                         color: Colors.red,
                         width: 180,
                       ),
-                      onTap: () {
-                        // Write func
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => MapFrame(diff, index),
-                          ),
-                        );
-                      },
                     ),
                   ),
                   SizedBox(
@@ -306,5 +386,6 @@ class _ObjectAboutState extends State<ObjectAbout> {
         ),
       ),
     );
+    ;
   }
 }
