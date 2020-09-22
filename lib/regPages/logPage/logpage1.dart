@@ -101,10 +101,12 @@ class _LogPage1State extends State<LogPage1> {
       }
       if (jsonResponse["msg"] == "confirm your email") {
         confirmEmail();
+        _onLoad = false;
       }
       if (jsonResponse["msg"] == "wrong password or email") {
         print(response.toString());
         wrongData();
+        _onLoad = false;
       }
     }
 

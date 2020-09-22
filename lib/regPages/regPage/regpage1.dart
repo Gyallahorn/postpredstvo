@@ -26,7 +26,7 @@ class _RegPage1State extends State<RegPage1> {
         builder: (BuildContext context) {
           return AlertDialog(
             title: Text("Ошибка"),
-            content: Text("неверный email или пароль"),
+            content: Text("Почта уже используется"),
             actions: <Widget>[
               FlatButton(
                 child: Text("Закрыть"),

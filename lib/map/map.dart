@@ -49,6 +49,7 @@ class _MapFrameState extends State<MapFrame> {
   bool menuPressed = false;
   bool profilePressed = false;
   bool testPressed = false;
+  var visited = false;
   var panelContent;
   var routeProgress;
   var menuPanelContent;
@@ -88,6 +89,7 @@ class _MapFrameState extends State<MapFrame> {
   var makeRouteButton1;
   var makeRoutePanel;
   var markerAbout;
+  var firstEnter = true;
   bool routeButtonPressed = false;
   bool _slidingPanelClosed = false;
   var places;
@@ -221,7 +223,6 @@ class _MapFrameState extends State<MapFrame> {
   void getDiffMarkers() async {
     diff = widget.diff;
 
-    print("difficult" + diff.toString());
     if (diff == 0) {
       markers = markList.easyMarkersList;
       diffPlaces = "e_places";
@@ -261,92 +262,45 @@ class _MapFrameState extends State<MapFrame> {
   }
   // Get Locations
 
-  @override
-  Future<String> _sendRequestPlaces() async {
-    var jsonResponse;
-    print("User token:" + token.toString());
-    if (token != null) {
-      var response = await http.get(
-        urlHost + '/api/user/getLocations',
-        headers: {
-          'Authorization': 'Bearer $token',
-        },
-      );
-      profileGetted = true;
-      jsonResponse = json.decode(response.body);
-      if (jsonResponse["msg"] == "success") {
-        if (diffUrl == "Easy") {
-          if (this.mounted) {
-            setState(() {
-              _visitedPlasesCount = jsonResponse["easy"];
-            });
-          }
-        }
-        if (diffUrl == "Norm") {
-          if (this.mounted) {
-            setState(() {
-              _visitedPlasesCount = jsonResponse["norm"];
-              print(_visitedPlasesCount);
-            });
-          }
-        }
-        if (diff == "Hard") {
-          if (this.mounted) {
-            setState(() {
-              _visitedPlasesCount = jsonResponse["hard"];
-            });
-          }
-        }
-      } else {
-        print("null!!!");
-      }
-    }
-    SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
-    sharedPreferences.setInt('vp', _visitedPlasesCount);
-    setMenuPanelContent();
-  }
 //Post locations
 
   Future<String> _sendRequestUpdateLocations() async {
     var jsonResponse;
     print("User token:" + token);
-    print(visitedPlases);
-    var vP = visitedPlases.toString();
-    print(vP + " Sring");
 
     if (token != null) {
       var response = await http.post(
-        urlHost + '/api/user/update' + diffUrl + 'Locations',
-        body: {"places": vP},
+        urlHost + '/api/user/updateEasyLocations',
+        body: {"lng": widget.lng.toString(), "ltd": widget.ltd.toString()},
         headers: {
           'Authorization': 'Bearer $token',
         },
       );
 
       jsonResponse = json.decode(response.body);
-      if (jsonResponse["msg"] == "success") {
-        if (this.mounted) {
-          setState(() {
-            _onLoad = false;
-            _flag = true;
-          });
-        }
+      if (jsonResponse["message"] == "succes") {
+        setState(() {
+          _onLoad = false;
+          _flag = true;
+          visited = true;
+        });
         success();
         print("Success");
       } else {
-        print("error womething went wrong");
+        print("error something went wrong");
       }
     }
+    return "Succes";
   }
 
-  getVisitedPlaces() {
-    if (visitedPlases.length < 2) {
-      print(markList.hardMarkersList.length.toString());
-      for (int i = 0; i < markList.hardMarkersList.length; i++) {
-        visitedPlases.add(0);
-      }
-    }
-  }
+  // getVisitedPlaces() {
+  //   if (visitedPlases.length < 2) {
+  //     print(markList.hardMarkersList.length.toString());
+  //     for (int i = 0; i < markList.hardMarkersList.length; i++) {
+  //       visitedPlases.add(0);
+  //     }
+  //   }
+  // }
 
   markerAboutBuilder(int i) {
     setState(() {
@@ -437,24 +391,25 @@ class _MapFrameState extends State<MapFrame> {
           SizedBox(
             height: 20,
           ),
-          FlatButton.icon(
-              onPressed: () {
-                if (distanceBetwee(widget.lng, widget.ltd, position.latitude,
-                        position.longitude) <
-                    0.2) {
-                  setState(() {
-                    visitedPlases[widget.index] = 1;
-                    _onLoad = true;
-                    _sendRequestUpdateLocations();
-                  });
-                } else {
-                  tooFar();
-                }
-              },
-              icon: !_onLoad
-                  ? Icon(Icons.done_outline)
-                  : CircularProgressIndicator(),
-              label: Text("Я здесь"))
+          visited
+              ? Text(" Место посещено ")
+              : FlatButton.icon(
+                  onPressed: () {
+                    if (distanceBetwee(widget.lng, widget.ltd,
+                            position.latitude, position.longitude) <
+                        0.2) {
+                      _sendRequestUpdateLocations();
+                      setState(() {
+                        _onLoad = true;
+                      });
+                    } else {
+                      tooFar();
+                    }
+                  },
+                  icon: !_onLoad
+                      ? Icon(Icons.done_outline)
+                      : CircularProgressIndicator(),
+                  label: Text("Я здесь"))
         ],
       );
       panelController.open();
@@ -582,42 +537,46 @@ class _MapFrameState extends State<MapFrame> {
             Row(
               children: <Widget>[
                 SizedBox(
-                  width: 170,
+                  width: 110,
                 ),
-                Center(
-                  child: Container(
-                    child: routeMode
-                        ? FlatButton(
-                            color: (Colors.grey),
-                            onPressed: () {
-                              _polylines.clear();
-                              setPolylines();
-                              if (this.mounted) {
-                                setState(() {
-                                  routeMode = false;
-                                  listCalled = true;
-                                });
-                              }
-                            },
-                            child: Row(
-                              children: <Widget>[Icon(Icons.directions_walk)],
-                            ))
-                        : FlatButton(
-                            color: Colors.grey,
-                            onPressed: () {
-                              _polylines.clear();
-                              setPolylines();
-                              if (this.mounted) {
-                                setState(() {
-                                  routeMode = true;
-                                  listCalled = true;
-                                });
-                              }
-                            },
-                            child: Row(
-                              children: <Widget>[Icon(Icons.directions_car)],
-                            )),
-                  ),
+                Row(
+                  children: <Widget>[
+                    FlatButton(
+                        color: routeMode ? Colors.grey[200] : Colors.grey[400],
+                        onPressed: () {
+                          _polylines.clear();
+                          setPolylines();
+                          if (this.mounted) {
+                            setState(() {
+                              routeMode = false;
+                              listCalled = true;
+                            });
+                          }
+                        },
+                        child: Row(
+                          children: <Widget>[
+                            Icon(Icons.directions_walk),
+                          ],
+                        )),
+                    SizedBox(
+                      width: 10,
+                    ),
+                    FlatButton(
+                        color: routeMode ? Colors.grey[400] : Colors.grey[200],
+                        onPressed: () {
+                          _polylines.clear();
+                          setPolylines();
+                          if (this.mounted) {
+                            setState(() {
+                              routeMode = true;
+                              listCalled = true;
+                            });
+                          }
+                        },
+                        child: Row(
+                          children: <Widget>[Icon(Icons.directions_car)],
+                        )),
+                  ],
                 ),
               ],
             )
@@ -628,47 +587,45 @@ class _MapFrameState extends State<MapFrame> {
   }
 
   addMarkers() {
-    if (this.mounted) {
-      setState(() {
-        allMarkers.add(Marker(
-          markerId: MarkerId(i.toString()),
-          draggable: false,
-          position: LatLng(widget.lng, widget.ltd),
-          onTap: () => setState(() {
-            zoom = 15;
-            //calc distance
-            dist = distanceBetwee(
-                widget.lng, widget.ltd, position.latitude, position.longitude);
-            if (dist < 1.0) {
-              dist = dist * 1000;
-              dist = dist.round();
-              distM = dist;
-              choosedMarker = i;
-              distance = dist.toString() + " м";
-            } else {
-              dist = dist.round();
-              distM = dist * 1000;
-              choosedMarker = i;
-              distance = dist.toString() + " Км";
-            }
-            markerAboutBuilder(i);
+    setState(() {
+      allMarkers.add(Marker(
+        markerId: MarkerId(i.toString()),
+        draggable: false,
+        position: LatLng(widget.lng, widget.ltd),
+        onTap: () => setState(() {
+          zoom = 15;
+          //calc distance
+          dist = distanceBetwee(
+              widget.lng, widget.ltd, position.latitude, position.longitude);
+          if (dist < 1.0) {
+            dist = dist * 1000;
+            dist = dist.round();
+            distM = dist;
+            choosedMarker = i;
+            distance = dist.toString() + " м";
+          } else {
+            dist = dist.round();
+            distM = dist * 1000;
+            choosedMarker = i;
+            distance = dist.toString() + " Км";
+          }
+          markerAboutBuilder(i);
 
-            _maxHeight = 300;
-          }),
-        ));
-        print("marker added!");
-        i++;
+          _maxHeight = 300;
+        }),
+      ));
+      print("marker added!");
+      i++;
 
-        print("My marker added!");
-        allMarkers.add(Marker(
-          markerId: MarkerId(i.toString()),
-          draggable: false,
-          icon: BitmapDescriptor.defaultMarkerWithHue(20),
-          position: LatLng(position.latitude, position.longitude),
-        ));
-        setPolylines();
-      });
-    }
+      print("My marker added!");
+      allMarkers.add(Marker(
+        markerId: MarkerId(i.toString()),
+        draggable: false,
+        icon: BitmapDescriptor.defaultMarkerWithHue(20),
+        position: LatLng(position.latitude, position.longitude),
+      ));
+      setPolylines();
+    });
   }
 
   // addMarkers() {
@@ -731,16 +688,17 @@ class _MapFrameState extends State<MapFrame> {
       });
     }
 
+    firstEnter ? setMenuPanelContent() : print("panel is setted");
+    setState(() {
+      firstEnter = false;
+    });
     // _getCurrentLocation();
     setMapButtons();
     getGeo();
-    getVisitedPlaces();
+    // getVisitedPlaces();
     getToken();
-    _sendRequestPlaces();
+    // _sendRequestPlaces();
     getDiffMarkers();
-
-    setMenuPanelContent();
-
     //set my positon
 
     return WillPopScope(
@@ -752,7 +710,7 @@ class _MapFrameState extends State<MapFrame> {
             body: SlidingUpPanel(
               onPanelClosed: () {
                 setState(() {
-                  print("panel is cloded");
+                  print("panel is closed");
                   setMenuPanelContent();
                 });
               },

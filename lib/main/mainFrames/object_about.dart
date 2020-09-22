@@ -83,6 +83,8 @@ AudioCache audioCache;
 var markerList = MarkerList();
 var diffOfList;
 var diff;
+var lng = [];
+var ltd = [];
 bool _playing = false;
 Position position;
 Duration _duration = Duration();
@@ -143,6 +145,40 @@ class _RoutesListState extends State<RoutesList> {
     audioPlayer.stop();
   }
 
+  Future<String> _getVisitedRoutes() async {
+    SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+    String token = sharedPreferences.getString('token');
+    print("User token:" + token);
+    var jsonResponse;
+    final response = await http.get(
+      urlHost + '/api/user/getTestResults',
+      headers: {
+        'Authorization': 'Bearer $token',
+      },
+    );
+    jsonResponse = json.decode(response.body);
+    if (jsonResponse["msg"] == "success") {
+      lng = jsonResponse["user"]["lng"];
+      ltd = jsonResponse["user"]["ltd"];
+      print(ltd);
+      print("success");
+    } else {
+      print("error something went wrong");
+    }
+  }
+
+  removeVisitedPlaces() {
+    for (int i = 0; i < widget.routes.length; i++) {
+      print(widget.routes[i].lng);
+      for (int j = 0; j < lng.length; j++) {
+        if (widget.routes[i].lng == lng[j] && widget.routes[i].ltd == ltd[j]) {
+          print("visited" + i.toString());
+          widget.routes.removeAt(i);
+        }
+      }
+    }
+  }
+
   initPlayer() {
     audioPlayer = AudioPlayer();
     audioCache = AudioCache(fixedPlayer: audioPlayer);
@@ -176,6 +212,8 @@ class _RoutesListState extends State<RoutesList> {
   @override
   void initState() {
     // TODO: implement initState
+    _getVisitedRoutes();
+    removeVisitedPlaces();
     initPlayer();
   }
 
