@@ -1,9 +1,10 @@
-import 'dart:convert';
 import 'dart:io';
-
+import 'dart:convert' as convert;
 import 'package:flutter/material.dart';
 import 'package:pospredsvto/cabinet/cabinet_edit.dart';
+import 'package:pospredsvto/cabinet/components/visited_routes.dart';
 import 'package:pospredsvto/map/marker_list.dart';
+import 'package:pospredsvto/models/UserData.dart';
 import 'package:pospredsvto/network/url_helper.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
@@ -23,51 +24,54 @@ class _MyCabinetState extends State<MyCabinet> {
   var token;
   var imagePath;
   int vp;
-
+  var user;
   var name = "Имя пользователя";
   var city = "Город";
-  getStringValue() async {
-    SharedPreferences score = await SharedPreferences.getInstance();
-    SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
-    String scoreValue = score.getString('testScore') ?? "0";
-    imagePath = sharedPreferences.getString('image');
-    token = sharedPreferences.getString('token');
-    name = sharedPreferences.getString('name');
-    city = sharedPreferences.getString('city');
-    vp = sharedPreferences.getInt('vp');
+  // getStringValue() async {
+  //   SharedPreferences score = await SharedPreferences.getInstance();
+  //   SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+  //   String scoreValue = score.getString('testScore') ?? "0";
+  //   imagePath = sharedPreferences.getString('image');
+  //   token = sharedPreferences.getString('token');
+  //   name = sharedPreferences.getString('name');
+  //   city = sharedPreferences.getString('city');
+  //   vp = sharedPreferences.getInt('vp');
 
-    print(city);
-    setState(() {
-      city = city;
-      name = name;
-      testScore = scoreValue.toString();
-      _image = File(imagePath);
-    });
-    print(scoreValue.toString() + " score");
-    print(testScore.toString() + "test score");
-  }
+  //   print(city);
+  //   setState(() {
+  //     city = city;
+  //     name = name;
+  //     testScore = scoreValue.toString();
+  //     _image = File(imagePath);
+  //   });
+  //   print(scoreValue.toString() + " score");
+  //   print(testScore.toString() + "test score");
+  // }
 
   @override
-  Future<String> _sendRequestProfile() async {
-    var jsonResponse;
-    print("User token:" + token);
-    if (token != null) {
-      var response = await http.get(
-        urlHost + '/api/user/getTestResults',
-        headers: {
-          'Authorization': 'Bearer $token',
-        },
-      );
-      profileGetted = true;
-      jsonResponse = json.decode(response.body);
-      if (jsonResponse["msg"] == "success") {}
+  fetchUserData() async {
+    SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+    String token = sharedPreferences.getString('token');
+    final response = await http.get(urlHost + getProfile, headers: {
+      'Authorization': 'Bearer $token',
+    });
+
+    if (response.statusCode == 200) {
+      final userData =
+          userDataFromJson(convert.utf8.decode(response.bodyBytes));
+      setState(() {
+        user = userData;
+        profileGetted = true;
+      });
+    } else {
+      throw Exception('Failed to load post');
     }
   }
 
   Widget build(BuildContext context) {
-    getStringValue();
+    // getStringValue();
     if (!profileGetted) {
-      _sendRequestProfile();
+      fetchUserData();
     }
     return Material(
       child: Column(
@@ -133,7 +137,7 @@ class _MyCabinetState extends State<MyCabinet> {
                   children: <Widget>[
                     Column(
                       children: <Widget>[
-                        Text('${vp}'),
+                        Text(user.user.lng.length.toString()),
                         SizedBox(
                           height: 6,
                         ),
@@ -165,7 +169,11 @@ class _MyCabinetState extends State<MyCabinet> {
                 ),
               ),
               SizedBox(
+                height: 20,
+              ),
+              SizedBox(
                 height: 29,
+                child: VisitedRoutes(),
               )
             ]),
           )

@@ -86,14 +86,9 @@ class _LogPage1State extends State<LogPage1> {
       jsonResponse = json.decode(response.body);
 
       if (jsonResponse["msg"] == "success") {
-        print("good code 200");
-
         var res = jsonResponse;
-        print(jsonResponse["msg"]);
         print("user logged in! token:" + jsonResponse["token"]);
         sharedPreferences.setString('token', jsonResponse["token"]);
-        print("logged in");
-
         Navigator.push(
           context,
           MaterialPageRoute(builder: (context) => MainFrame()),
