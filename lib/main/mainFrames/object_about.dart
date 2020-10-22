@@ -151,7 +151,7 @@ class _RoutesListState extends State<RoutesList> {
     print("User token:" + token);
     var jsonResponse;
     final response = await http.get(
-      urlHost + '/api/user/getProfile',
+      urlHost + getProfile,
       headers: {
         'Authorization': 'Bearer $token',
       },

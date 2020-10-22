@@ -2,10 +2,12 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:pospredsvto/mainFrame.dart';
+import 'package:pospredsvto/models/Questions.dart';
 import 'package:pospredsvto/network/url_helper.dart';
 import 'package:pospredsvto/quiz/quizes.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
+import 'dart:convert' as convert;
 
 bool isNotCalled = true;
 bool isTapped = false;
@@ -14,8 +16,8 @@ var choosedAnswer = "";
 int group = 1;
 
 class Quiz extends StatefulWidget {
-  final int testNumber;
-  const Quiz(this.testNumber);
+  final int testIndex;
+  const Quiz(this.testIndex);
   @override
   _QuizState createState() => _QuizState();
 }
@@ -23,21 +25,43 @@ class Quiz extends StatefulWidget {
 var finalScore = 0;
 var questionNumber = 0;
 var quiz;
+int count;
+var correctAnswers;
 var answersWidgets = List<Widget>();
+bool loading = true;
+var finalQuestion = false;
 
 class _QuizState extends State<Quiz> {
   var color = Colors.grey;
   @override
+  fetchTestsData() async {
+    final response = await http.get(urlHost + getTests);
+
+    if (response != null) {
+      final testsData = testFromJson(convert.utf8.decode(response.bodyBytes));
+
+      setState(() {
+        loading = false;
+
+        quiz = testsData;
+        count = testsData[widget.testIndex].test.length - 1;
+      });
+    } else {
+      throw Exception('Failed to load post');
+    }
+  }
 
   // init answers buttons
   void answersBuilder() async {
-    for (int i = 0; i < quiz.choices[questionNumber].length; i++) {
+    for (int i = 0;
+        i < quiz[widget.testIndex].test[questionNumber].length - 1;
+        i++) {
       answersWidgets.add(GestureDetector(
         onTap: () => setState(() {
           group = i + 1;
           isTapped = true;
           color = Colors.blue;
-          choosedAnswer = quiz.choices[questionNumber][i];
+          choosedAnswer = quiz[widget.testIndex].test[questionNumber][i + 1];
           print(i);
         }),
         child: Column(
@@ -62,7 +86,8 @@ class _QuizState extends State<Quiz> {
                   ),
                   Container(
                       padding: EdgeInsets.only(top: 10),
-                      child: Text(quiz.choices[questionNumber][i])),
+                      child: Text(
+                          quiz[widget.testIndex].test[questionNumber][i + 1])),
                 ],
               ),
             ),
@@ -75,29 +100,43 @@ class _QuizState extends State<Quiz> {
     }
   }
 
-  void setScore() async {
-    SharedPreferences score = await SharedPreferences.getInstance();
+  void setScore(int score, String name) async {
     SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
-
-    score.setString('testScore', finalScore.toString());
     var token = sharedPreferences.getString('token');
-
     var jsonResponse;
+
     print("User token:" + token);
+
     if (token != null) {
-      var response = await http.patch(
-        urlHost + '/api/user/updateTest',
-        body: {"test": finalScore.toString()},
+      var response = await http.post(
+        urlHost + '/api/quiz/updatetest',
+        body: {"score": '$score', "name": '$name'},
         headers: {
           'Authorization': 'Bearer $token',
         },
       );
 
       jsonResponse = json.decode(response.body);
-      if (jsonResponse["msg"] == "success") {
+      if (jsonResponse["message"] == "done!") {
         print("Success");
+        Navigator.push(
+            context,
+            new MaterialPageRoute(
+                builder: (context) => new Summary(
+                      score: score,
+                      count: count,
+                    )));
       }
     }
+  }
+
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    testEnded = true;
+    questionNumber = 0;
+    finalQuestion = false;
+    super.dispose();
   }
 
 //next question
@@ -105,21 +144,25 @@ class _QuizState extends State<Quiz> {
     setState(() {
       answersWidgets.removeRange(0, answersWidgets.length);
       isNotCalled = true;
-      if (choosedAnswer == quiz.correctAnswers[questionNumber]) {
+      print("rig " +
+          quiz[widget.testIndex].test[quiz[widget.testIndex].test.length - 1]
+              [questionNumber]);
+      print("N%" + questionNumber.toString());
+      print("Choosed " + choosedAnswer);
+      if (choosedAnswer ==
+          quiz[widget.testIndex].test[quiz[widget.testIndex].test.length - 1]
+              [questionNumber]) {
         print("Correct!");
         finalScore++;
       } else {
         print("Incorrect!");
       }
 
-      if (questionNumber == quiz.quiestions.length - 1) {
-        setScore();
-        testEnded = true;
-        Navigator.push(
-            context,
-            new MaterialPageRoute(
-                builder: (context) => new Summary(score: finalScore)));
-        questionNumber = 0;
+      if (questionNumber == quiz[widget.testIndex].test.length - 2) {
+        setState(() {
+          finalQuestion = true;
+        });
+        setScore(finalScore, quiz[widget.testIndex].name);
       } else {
         questionNumber++;
       }
@@ -128,24 +171,7 @@ class _QuizState extends State<Quiz> {
 
   @override
   Widget build(BuildContext context) {
-    switch (widget.testNumber) {
-      case 0:
-        {
-          quiz = Quizes();
-        }
-        break;
-      case 1:
-        {
-          quiz = Quizes2();
-        }
-        break;
-      case 2:
-        {
-          quiz = Quizes3();
-        }
-        break;
-    }
-
+    fetchTestsData();
     if (testEnded) {
       finalScore = 0;
       testEnded = false;
@@ -156,59 +182,67 @@ class _QuizState extends State<Quiz> {
     return SafeArea(
       child: Scaffold(
         appBar: AppBar(),
-        body: Material(
-          child: Container(
-            child: Column(
-              children: <Widget>[
-                Container(
-                  child: Text(
-                    "${questionNumber + 1} из ${quiz.quiestions.length}",
-                  ),
-                ),
-                SizedBox(
-                  height: 10,
-                ),
-                Container(
-                  padding: EdgeInsets.only(left: 15.0, right: 15),
-                  child: Text(
-                    quiz.quiestions[questionNumber],
-                    style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
-                  ),
-                ),
-                SizedBox(
-                  height: 33,
-                ),
-                Container(
-                  height: 292,
-                  padding: EdgeInsets.only(left: 15.0, right: 15),
+        body: !loading
+            ? Material(
+                child: Container(
                   child: Column(
-                    children: answersWidgets,
-                  ),
-                ),
-                SizedBox(
-                  height: 90,
-                ),
-                Align(
-                  alignment: Alignment.bottomCenter,
-                  child: Container(
-                    width: 280,
-                    height: 44,
-                    child: RaisedButton(
-                        color: Colors.blue,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: new BorderRadius.circular(18.0),
-                        ),
+                    children: <Widget>[
+                      Container(
                         child: Text(
-                          "Далее",
-                          style: TextStyle(color: Colors.white),
+                          "${questionNumber + 1} из ${quiz[widget.testIndex].test.length - 1}",
                         ),
-                        onPressed: () => UpdateQuestion()),
+                      ),
+                      SizedBox(
+                        height: 10,
+                      ),
+                      Container(
+                        padding: EdgeInsets.only(left: 15.0, right: 15),
+                        child: Text(
+                          quiz[widget.testIndex].test[questionNumber][0],
+                          style: TextStyle(
+                              fontSize: 17, fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                      SizedBox(
+                        height: 33,
+                      ),
+                      Container(
+                        height: 365,
+                        padding: EdgeInsets.only(left: 15.0, right: 15),
+                        child: Column(
+                          children: answersWidgets,
+                        ),
+                      ),
+                      SizedBox(
+                        height: 90,
+                      ),
+                      Align(
+                        alignment: Alignment.bottomCenter,
+                        child: !finalQuestion
+                            ? Container(
+                                width: 280,
+                                height: 44,
+                                child: RaisedButton(
+                                    color: Colors.blue,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius:
+                                          new BorderRadius.circular(18.0),
+                                    ),
+                                    child: Text(
+                                      "Далее",
+                                      style: TextStyle(color: Colors.white),
+                                    ),
+                                    onPressed: () => UpdateQuestion()),
+                              )
+                            : Center(
+                                child: CircularProgressIndicator(),
+                              ),
+                      ),
+                    ],
                   ),
                 ),
-              ],
-            ),
-          ),
-        ),
+              )
+            : Center(child: CircularProgressIndicator()),
       ),
     );
   }
@@ -216,8 +250,8 @@ class _QuizState extends State<Quiz> {
 
 class Summary extends StatelessWidget {
   final int score;
-
-  Summary({Key key, @required this.score}) : super(key: key);
+  final int count;
+  Summary({Key key, @required this.score, this.count}) : super(key: key);
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -244,7 +278,7 @@ class Summary extends StatelessWidget {
                   padding: EdgeInsets.only(left: 15),
                   alignment: Alignment.centerLeft,
                   child: Text(
-                      'Всего было отвечено на ${score} вопросов из ${quiz.quiestions.length}'),
+                      'Всего было отвечено на ${score} вопросов из ${count}'),
                 ),
                 SizedBox(
                   height: 50,

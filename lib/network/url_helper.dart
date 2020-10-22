@@ -8,3 +8,5 @@ const urlHost = 'https://postpredstvo-back.herokuapp.com';
 const getProfile = '/api/user/getProfile';
 
 const getRoutes = '/api/routes/getRoutes/easy';
+
+const getTests = '/api/quiz/getTests';

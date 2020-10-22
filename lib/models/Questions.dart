@@ -1,57 +1,37 @@
-// class Questions {
-// 	Id iId;
-// 	String name;
-// 	List<List> test;
+// To parse this JSON data, do
+//
+//     final test = testFromJson(jsonString);
 
-// 	Questions({this.iId, this.name, this.test});
+import 'dart:convert';
 
-// 	Questions.fromJson(Map<String, dynamic> json) {
-// 		iId = json['_id'] != null ? new Id.fromJson(json['_id']) : null;
-// 		name = json['name'];
-// 		if (json['test'] != null) {
-// 			test = new List<List>();
-// 			json['test'].forEach((v) { test.add(new List.fromJson(v)); });
-// 		}
-// 	}
+List<Test> testFromJson(String str) =>
+    List<Test>.from(json.decode(str).map((x) => Test.fromJson(x)));
 
-// 	Map<String, dynamic> toJson() {
-// 		final Map<String, dynamic> data = new Map<String, dynamic>();
-// 		if (this.iId != null) {
-//       data['_id'] = this.iId.toJson();
-//     }
-// 		data['name'] = this.name;
-// 		if (this.test != null) {
-//       data['test'] = this.test.map((v) => v.toJson()).toList();
-//     }
-// 		return data;
-// 	}
-// }
+String testToJson(List<Test> data) =>
+    json.encode(List<dynamic>.from(data.map((x) => x.toJson())));
 
-// class Id {
-// 	String oid;
+class Test {
+  Test({
+    this.test,
+    this.id,
+    this.name,
+  });
 
-// 	Id({this.oid});
+  List<List<String>> test;
+  String id;
+  String name;
 
-// 	Id.fromJson(Map<String, dynamic> json) {
-// 		oid = json['$oid'];
-// 	}
+  factory Test.fromJson(Map<String, dynamic> json) => Test(
+        test: List<List<String>>.from(
+            json["test"].map((x) => List<String>.from(x.map((x) => x)))),
+        id: json["_id"],
+        name: json["name"],
+      );
 
-// 	Map<String, dynamic> toJson() {
-// 		final Map<String, dynamic> data = new Map<String, dynamic>();
-// 		data['$oid'] = this.oid;
-// 		return data;
-// 	}
-// }
-
-// class Test {
-
-// 	Test({});
-
-// 	Test.fromJson(Map<String, dynamic> json) {
-// 	}
-
-// 	Map<String, dynamic> toJson() {
-// 		final Map<String, dynamic> data = new Map<String, dynamic>();
-// 		return data;
-// 	}
-// }
+  Map<String, dynamic> toJson() => {
+        "test": List<dynamic>.from(
+            test.map((x) => List<dynamic>.from(x.map((x) => x)))),
+        "_id": id,
+        "name": name,
+      };
+}
