@@ -270,7 +270,7 @@ class _MapFrameState extends State<MapFrame> {
 
     if (token != null) {
       var response = await http.post(
-        urlHost + '/api/user/updateEasyLocations',
+        urlHost + '/api/routes/updateEasyLocations',
         body: {"lng": widget.lng.toString(), "ltd": widget.ltd.toString()},
         headers: {
           'Authorization': 'Bearer $token',

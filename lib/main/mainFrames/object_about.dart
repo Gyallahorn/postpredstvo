@@ -51,7 +51,7 @@ Future<List<Route>> fetchRoutes(String difficult) async {
   print("User token:" + token);
 
   final response = await http.get(
-    urlHost + '/api/user/getRoutes/' + '${difficult}',
+    urlHost + '/api/routes/getRoutes/' + '${difficult}',
     headers: {
       'Authorization': 'Bearer $token',
     },
@@ -151,7 +151,7 @@ class _RoutesListState extends State<RoutesList> {
     print("User token:" + token);
     var jsonResponse;
     final response = await http.get(
-      urlHost + '/api/user/getTestResults',
+      urlHost + '/api/user/getProfile',
       headers: {
         'Authorization': 'Bearer $token',
       },

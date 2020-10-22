@@ -29,7 +29,7 @@ class _VisitedRoutesState extends State<VisitedRoutes> {
       'Authorization': 'Bearer $token',
     });
     final response2 =
-        await http.get(urlHost + '/api/user/getRoutes/normal', headers: {
+        await http.get(urlHost + '/api/routes/getRoutes/normal', headers: {
       'Authorization': 'Bearer $token',
     });
     if (response.statusCode == 200 && response2.statusCode == 200) {
@@ -78,7 +78,7 @@ class _VisitedRoutesState extends State<VisitedRoutes> {
                   return Container(
                     margin: EdgeInsets.only(left: 20, right: 20),
                     height: 50,
-                    child: Text(routes[visited[index]].name),
+                    child: Center(child: Text(routes[visited[index]].name)),
                     decoration: BoxDecoration(
                         color: Colors.white,
                         boxShadow: [

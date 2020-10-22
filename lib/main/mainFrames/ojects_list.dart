@@ -40,7 +40,7 @@ Future<List<Difficult>> fetchDifficulties() async {
   print("User token:" + token);
 
   final response = await http.get(
-    urlHost + '/api/user/getDifficulties/',
+    urlHost + '/api/routes/getDifficulties/',
     headers: {
       'Authorization': 'Bearer $token',
     },

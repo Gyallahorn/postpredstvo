@@ -32,6 +32,7 @@ class User {
   User({
     this.lng,
     this.ltd,
+    this.test,
     this.confirmed,
     this.isAdmin,
     this.id,
@@ -41,7 +42,8 @@ class User {
   });
 
   List<double> lng;
-  List<double> ltd;
+  List<int> ltd;
+  List<Test> test;
   bool confirmed;
   bool isAdmin;
   String id;
@@ -51,7 +53,8 @@ class User {
 
   factory User.fromJson(Map<String, dynamic> json) => User(
         lng: List<double>.from(json["lng"].map((x) => x.toDouble())),
-        ltd: List<double>.from(json["ltd"].map((x) => x.toDouble())),
+        ltd: List<int>.from(json["ltd"].map((x) => x)),
+        test: List<Test>.from(json["test"].map((x) => Test.fromJson(x))),
         confirmed: json["confirmed"],
         isAdmin: json["isAdmin"],
         id: json["_id"],
@@ -63,11 +66,32 @@ class User {
   Map<String, dynamic> toJson() => {
         "lng": List<dynamic>.from(lng.map((x) => x)),
         "ltd": List<dynamic>.from(ltd.map((x) => x)),
+        "test": List<dynamic>.from(test.map((x) => x.toJson())),
         "confirmed": confirmed,
         "isAdmin": isAdmin,
         "_id": id,
         "email": email,
         "password": password,
         "__v": v,
+      };
+}
+
+class Test {
+  Test({
+    this.name,
+    this.score,
+  });
+
+  String name;
+  String score;
+
+  factory Test.fromJson(Map<String, dynamic> json) => Test(
+        name: json["name"],
+        score: json["score"],
+      );
+
+  Map<String, dynamic> toJson() => {
+        "name": name,
+        "score": score,
       };
 }

@@ -18,6 +18,7 @@ class RegPage1 extends StatefulWidget {
 class _RegPage1State extends State<RegPage1> {
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
+  bool onLoad = false;
 
   void wrongData() {
     print("wrong email or password");
@@ -65,6 +66,9 @@ class _RegPage1State extends State<RegPage1> {
 
   Future<String> _sendRequest(String email, String passwrod) async {
     SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+    setState(() {
+      onLoad = true;
+    });
 
     var jsonResponse;
     var response = await http.post(urlHost + '/api/user/signup',
@@ -87,6 +91,9 @@ class _RegPage1State extends State<RegPage1> {
     } else {
       print("something went wrong");
       wrongData();
+      setState(() {
+        onLoad = false;
+      });
       print(response.body.toString());
     }
   }
@@ -123,7 +130,9 @@ class _RegPage1State extends State<RegPage1> {
                     if (passwordController.text.length > 7) {
                       _sendRequest(
                           emailController.text, passwordController.text);
-                    } else {}
+                    } else {
+                      shortPassword();
+                    }
                   },
                   child: Text('Далее',
                       style: TextStyle(
@@ -161,6 +170,16 @@ class _RegPage1State extends State<RegPage1> {
                     border: UnderlineInputBorder(),
                     hintText: 'Мин 8 символов'),
               ),
+            ),
+            SizedBox(
+              height: 90,
+            ),
+            SizedBox(
+              child: onLoad
+                  ? Center(
+                      child: CircularProgressIndicator(),
+                    )
+                  : SizedBox(),
             )
           ],
         ),

@@ -27,6 +27,7 @@ class _MyCabinetState extends State<MyCabinet> {
   var user;
   var name = "Имя пользователя";
   var city = "Город";
+  var test;
   // getStringValue() async {
   //   SharedPreferences score = await SharedPreferences.getInstance();
   //   SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
@@ -62,6 +63,9 @@ class _MyCabinetState extends State<MyCabinet> {
       setState(() {
         user = userData;
         profileGetted = true;
+        if (user.user.test == null) {
+          test = 0;
+        }
       });
     } else {
       throw Exception('Failed to load post');
@@ -149,7 +153,7 @@ class _MyCabinetState extends State<MyCabinet> {
                     ),
                     Column(
                       children: <Widget>[
-                        Text(testScore),
+                        Text(test.toString()),
                         SizedBox(
                           height: 6,
                         ),
@@ -172,7 +176,7 @@ class _MyCabinetState extends State<MyCabinet> {
                 height: 20,
               ),
               SizedBox(
-                height: 29,
+                height: 300,
                 child: VisitedRoutes(),
               )
             ]),

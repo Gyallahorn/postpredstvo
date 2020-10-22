@@ -1,7 +1,7 @@
 import 'dart:convert';
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:pospredsvto/mainFrame.dart';
 import 'package:pospredsvto/network/url_helper.dart';
 import 'package:pospredsvto/quiz/quizes.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -245,7 +245,31 @@ class Summary extends StatelessWidget {
                   alignment: Alignment.centerLeft,
                   child: Text(
                       'Всего было отвечено на ${score} вопросов из ${quiz.quiestions.length}'),
-                )
+                ),
+                SizedBox(
+                  height: 50,
+                ),
+                Align(
+                  alignment: Alignment.bottomCenter,
+                  child: Container(
+                    width: 280,
+                    height: 44,
+                    child: RaisedButton(
+                        color: Colors.blue,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: new BorderRadius.circular(18.0),
+                        ),
+                        child: Text(
+                          "Ок",
+                          style: TextStyle(color: Colors.white),
+                        ),
+                        onPressed: () => Navigator.pushAndRemoveUntil(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => MainFrame()),
+                            (route) => false)),
+                  ),
+                ),
               ],
             ),
           ),

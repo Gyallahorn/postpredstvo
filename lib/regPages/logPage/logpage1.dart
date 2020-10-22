@@ -89,10 +89,10 @@ class _LogPage1State extends State<LogPage1> {
         var res = jsonResponse;
         print("user logged in! token:" + jsonResponse["token"]);
         sharedPreferences.setString('token', jsonResponse["token"]);
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => MainFrame()),
-        );
+        Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(builder: (context) => MainFrame()),
+            (route) => false);
       }
       if (jsonResponse["msg"] == "confirm your email") {
         confirmEmail();
