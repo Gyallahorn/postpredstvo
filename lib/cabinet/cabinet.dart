@@ -153,7 +153,7 @@ class _MyCabinetState extends State<MyCabinet> {
                     ),
                     Column(
                       children: <Widget>[
-                        Text(test.toString()),
+                        test != null ? Text(test.toString()) : Text('0'),
                         SizedBox(
                           height: 6,
                         ),
